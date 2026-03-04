@@ -6,3 +6,7 @@ def test_true():
 
 def test_false():
     assert 1 == 0
+
+import ibis
+def test_ibis():
+    con = ibis.duckdb.connect('test.parquet')
