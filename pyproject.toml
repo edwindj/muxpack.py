@@ -10,7 +10,8 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "duckdb>=1.4.4",
-    "ibis-framework>=12.0.0"
+    "ibis-framework>=12.0.0",
+    "pyarrow>=23.0.1",
 ]
 
 [project.scripts]
@@ -24,6 +25,7 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.0.2",
     "ruff>=0.15.4",
+    "sphinx>=9.1.0",
 ]
 
 [tool.ruff.lint]
