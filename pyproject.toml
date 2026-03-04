@@ -1,7 +1,7 @@
 [project]
-name = "cbsnetwork-py"
+name = "muxpack"
 version = "0.1.0"
-description = "Tools to handle person network layers more easily"
+description = "Tools to handle multiplex network packag more easily"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []
