@@ -1,7 +1,20 @@
 [project]
 name = "muxpack"
 version = "0.1.0"
-description = "Tools to handle multiplex network packag more easily"
+description = "Tools to handle multiplex network data more easily"
 readme = "README.md"
+authors = [
+    { name = "Edwin de Jonge", email = "edwindjonge@gmail.com" },
+    { name = "Jan van der Laan", email = "djvanderlaan@gmail.com" }
+]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "pyarrow>=23.0.1",
+]
+
+[project.scripts]
+muxpack = "muxpack:main"
+
+[build-system]
+requires = ["uv_build>=0.10.6,<0.11.0"]
+build-backend = "uv_build"
