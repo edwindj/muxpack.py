@@ -15,6 +15,7 @@ author = 'Edwin de Jonge, Jan van der Laan'
 
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
 ]
