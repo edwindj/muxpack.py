@@ -1,3 +1,7 @@
-.. autofunction:: muxpack.load_network
+.. automodule:: muxpack
+    :members:
+
 
 .. autoclass:: muxpack.Multiplex
+    :members:
+    :undoc-members:
