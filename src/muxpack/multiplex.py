@@ -47,4 +47,17 @@ class Multiplex:
         src = self.edges.select(id="src").distinct()
         dst = self.edges.select(id="dst").distinct()
         self.vertices = src.union(dst).distinct().execute()
-    
+
+    def save(self, dir: str, edges: ibis.Table = None, vertices: ibis.Table = None):
+        """
+        Save a multiplex to disk, using the 
+        """
+        if not edges is None:
+            mp = Multiplex(edges=edges, vertices=vertices)
+            return mp.save(dir = dir)
+        if not vertices is None:
+            mp = Multiplex(edges = self.edges, vertices=vertices)
+            return mp.save(dir = dir)
+        
+        print("TO BE IMPLEMENTED")
+        pass 
