@@ -1,6 +1,6 @@
 import pytest
+import muxpack
 
 def test_load_data():
-    from muxpack import load_network
-    data = load_network("data/network")
+    data = muxpack.load_network("data")
     assert data is not None

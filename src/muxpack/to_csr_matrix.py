@@ -2,6 +2,8 @@ from ibis import row_number, Table
 import ibis
 from scipy.sparse import csr_matrix
 from muxpack.multiplex import Multiplex
+from typing import Tuple, Generator
+# from collections.abc import Generator
 
 def to_row_col_idx(edges: Table, vertices: Table) -> Table:
     """
@@ -23,12 +25,13 @@ def to_row_col_idx(edges: Table, vertices: Table) -> Table:
 
     idx_edges = (
         edges
+        .distinct("src", "dst")
         .inner_join(row, "src")
         .inner_join(col, "dst")
         .mutate(data = True)
         .select("data", "row", "col")
     )
-    print(idx_edges.execute())
+    # print(idx_edges.execute())
     return idx_edges
 
 def idx_to_csr_matrix(idx: Table, vertices: Table) -> csr_matrix:
@@ -41,10 +44,42 @@ def idx_to_csr_matrix(idx: Table, vertices: Table) -> csr_matrix:
     M = csr_matrix((coo["data"], (coo["row"], coo["col"])), shape=(n,n))
     return M
 
-def to_csr_matrix(edges: Table, vertices: Table) -> csr_matrix:
+def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
+    """
+    Transform an edge list into a sparse matrix (csr_matrix)
+
+    Parameters:
+        edges: `src`, `dst` fields
+        vertices: Table representing nodes/vertices, needs `id` field. `edges` will
+        be filtered on whether they exist in vertices 
+
+    Returns:
+        sparse matrix as `csr_matrix` object
+    """
+    # vertices may contain multiple years
+    vertices = vertices.distinct("id")
     edges_row_col = to_row_col_idx(edges, vertices=vertices)
     M = idx_to_csr_matrix(edges_row_col, vertices=vertices)
-    return 
+    return M
+
+def to_year_csr_matrix(edges: Table, vertices: Table | None, years: list[int]= []) -> Generator[Tuple[csr_matrix, int]]:
+    """
+    Generates a sparse matrix for all years given
+
+    Parameters:
+        edges: Table with the edges/links needs `src`, `dst`, `year`
+        vertices: Optional Table with vertex information, needs a `id` and `year`
+    """
+    if len(years) == 0:
+        years = (edges.distinct("year").execute())["year"]
+    for year in years:
+        E_y = edges.filter(edges.year == year)
+        if vertices is not None:
+            V_y = vertices.filter(vertices.year == year)
+        else:
+            V_y = None
+
+        yield to_csr_matrix(E_y, V_y), year
 
 
 if __name__ == "__main__":
