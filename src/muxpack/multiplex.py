@@ -9,7 +9,7 @@ class Multiplex:
     another layer could represent professional connections.
     """
 
-    #: The edges of the multiplex. This is a table with columns "src", "dst", "year", and "layer".
+    #: The edges of the multiplex. This is a table with columns "src", "dst", "year", "layer" and "relationtype".
     edges: ibis.Table
 
     #: The vertices of the multiplex. This is a table with a column "id" and optional additional columns.
@@ -30,7 +30,7 @@ class Multiplex:
         """
         Get the list of years in the multiplex.
         """
-        years = self.edges.distinct("year").execute()
+        years = self.edges.distinct("year").to_pandas()["year"]
         return years
     
     def layers(self) -> list[str]:
@@ -58,6 +58,8 @@ class Multiplex:
         if not vertices is None:
             mp = Multiplex(edges = self.edges, vertices=vertices)
             return mp.save(dir = dir)
+        
+        edges.to_parqu
         
         print("TO BE IMPLEMENTED")
         pass 

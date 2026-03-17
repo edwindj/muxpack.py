@@ -37,19 +37,29 @@ def load_network(dir: Path) -> Multiplex:
     m = Multiplex(edges=edges)
     return m
 
-def save_network(mp: Multiplex, dir: Path, **kwargs):
+def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path, **kwargs):
     """
+    Save edges and vertices to dir. 
+    Note that:
+        - dir and sub directories will be created if not present
+        - the edges and vertices will be saved in the correct structure, but 
+        won't be checked for consistency. You should use a Multiplex object
+        for that.
 
     Parameters:
-        mp: multiplex object
+        edges: Table 
+        vertices: Table
         dir: root path where the network is saved
         kwargs: passed through to pyarrow.dataset_write()
     """
-    if mp.vertices is None:
-        mp.update_vertices()
-    
-    E = mp.edges
-    V = mp.vertices
+    E = edges
+    V = vertices
+
+    # We do a manual partitioning to have maximum control.
+    # alternative and potentially more efficient would be partitioning using
+    # duckdb, however, that would pose some problems:
+    # - Hive naming convention does not follow the muxpack specification
+    # - Hive partitioning removes columns that are partitioned.
 
     years = E.distinct("year").to_pandas()["year"]
     
