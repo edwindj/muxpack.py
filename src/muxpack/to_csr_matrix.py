@@ -24,8 +24,8 @@ def to_row_col_idx(edges: Table, vertices: Table) -> Table:
     col = v.select(dst = "id", col = "idx")
 
     idx_edges = (
-        edges
-        .distinct("src", "dst")
+        edges[["src", "dst"]]
+        .distinct()
         .inner_join(row, "src")
         .inner_join(col, "dst")
         .mutate(data = True)
@@ -57,7 +57,7 @@ def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
         sparse matrix as `csr_matrix` object
     """
     # vertices may contain multiple years
-    vertices = vertices.distinct("id")
+    vertices = vertices[["id"]].distinct()
     edges_row_col = to_row_col_idx(edges, vertices=vertices)
     M = idx_to_csr_matrix(edges_row_col, vertices=vertices)
     return M
@@ -71,8 +71,13 @@ def to_year_csr_matrix(edges: Table, vertices: Table | None, years: list[int]= [
         vertices: Optional Table with vertex information, needs a `id` and `year`
     """
     if len(years) == 0:
-        years = (edges.distinct("year").execute())["year"]
-        
+        years = (
+            edges[["year"]]
+            .distinct()
+            .to_pandas()
+            .year
+            .tolist()
+        )
     for year in years:
         E_y = edges.filter(edges.year == year)
         if vertices is not None:

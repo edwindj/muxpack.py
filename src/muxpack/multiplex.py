@@ -38,14 +38,14 @@ class Multiplex:
         """
         Get the list of years in the multiplex.
         """
-        years = self.edges.distinct("year").year.to_pyarrow()
-        return [y for y in years]
+        years = self.edges[["year"]].distinct().to_pandas().year.tolist()
+        return years
     
     def layers(self) -> list[str]:
         """
         Get the list of layers in the multiplex.
         """
-        layers = self.edges.distinct("layer").execute()
+        layers = self.edges[["layer"]].distinct().to_pandas().layer.tolist()
         return layers
     
     def update_vertices(self) -> None:

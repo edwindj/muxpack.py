@@ -16,3 +16,25 @@ def test_multiplex():
     # print(f"{edges.get_backend()}")
     # ddb.to_parquet(vertices, "data/vertices.parquet")
     # m = Multiplex(edges)
+
+
+def test_layers():
+    from muxpack.multiplex import Multiplex
+    edges = ibis.memtable({
+        "src": [1, 2, 2, 1],
+        "dst": [2, 3, 4, 2],
+        "year": [2020, 2020, 2021, 2021],
+        "layer": ["A", "B", "A", "B"],
+        "relationtype": [1,2, 1, 2]
+    })
+    vertices = ibis.memtable({
+        "id": [1, 2, 3, 4],
+        "year": [2020, 2020, 2021, 2021]
+    })
+    m = Multiplex(edges, vertices)
+    assert len(m.layers()) == 2
+    for l in m.layers():
+        assert l in ["A", "B"]
+    assert len(m.years()) == 2
+    for y in m.years():
+        assert y in [2020, 2021]
