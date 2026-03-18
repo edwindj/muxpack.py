@@ -7,7 +7,6 @@ from scipy.sparse import csr_matrix
 
 @pytest.fixture()
 def edges_vertices() -> Generator[Tuple[ibis.Table, ibis.Table]]:
-    print("Create edges")
     E = ibis.memtable({
         "src": [100,200,300],
         "dst": [200,100,200]
@@ -17,7 +16,6 @@ def edges_vertices() -> Generator[Tuple[ibis.Table, ibis.Table]]:
         "id": [100, 200, 300]
     })
     yield E, V
-    print("end")  
 
 def test_to_csr_matrix(edges_vertices):
     edges, vertices = edges_vertices

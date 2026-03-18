@@ -27,9 +27,13 @@ language = 'en'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
+from pathlib import Path
 
 html_theme = 'alabaster'
-html_static_path = ['_static']
+if Path(__file__).with_name('_static').exists():
+    html_static_path = ['_static']
+else:
+    html_static_path = []
 
 # -- Options for todo extension ----------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/todo.html#configuration

@@ -1,6 +1,8 @@
 from ibis.expr.types import Table
 from ibis import dtype
 
+import logging
+logger = logging.getLogger(__name__)
 
 def check_edges(edges: Table) -> bool:
     """
@@ -34,7 +36,7 @@ def check_vertices(vertices: Table) -> bool:
     required_columns = {"id"}
 
     if not required_columns.issubset(set(vertices.columns)):
-        print(f"Missing columns: {required_columns - set(vertices.columns)}")
+        logger.warning(f"Missing columns: {required_columns - set(vertices.columns)}")
         return False
     
     expect_types = {
@@ -58,7 +60,7 @@ def check_column_type(t: Table, expected_types: dict[str, str]) -> bool:
     for column, expected_type in expected_types.items():
         col = t[column]
         if col is None:
-            print(f"Column '{column}' is missing.")
+            logger.warning(f"Column '{column}' is missing.")
             return False
         coltype = col.type()
         if expected_type == "integer" and coltype.is_integer():
@@ -69,6 +71,6 @@ def check_column_type(t: Table, expected_types: dict[str, str]) -> bool:
         if dtype(expected_type) == coltype:
             continue
         
-        print(f"Incorrect type for column '{column}': '{coltype}', expected {expected_type}")
+        logger.warning(f"Incorrect type for column '{column}': '{coltype}', expected {expected_type}")
         return False
     return True

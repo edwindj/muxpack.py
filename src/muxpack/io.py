@@ -2,6 +2,9 @@ import ibis
 from muxpack.multiplex import Multiplex
 from pathlib import Path
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 def load_network(dir: Path) -> Multiplex:
     """
@@ -31,7 +34,7 @@ def load_network(dir: Path) -> Multiplex:
     Multiplex
         The loaded multiplex network.
     """
-    print(f"Loading data from {dir}...")
+    logger.info(f"Loading data from {dir}...")
     edges = ibis.read_parquet(f"{dir}/*/edges/**/*.parquet", table_name="edges")
     
     try:
@@ -62,6 +65,8 @@ def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path | str,
     V = vertices
     dir = Path(dir)
 
+    logger.info(f"Saving network to {dir}...")
+
     # We do a manual partitioning to have maximum control.
     # alternative and potentially more efficient would be partitioning using
     # duckdb, however, that would pose some problems:
@@ -70,6 +75,7 @@ def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path | str,
     years = E[["year"]].distinct().to_pandas().year
     
     for year in years:
+        logger.info(f"\tSaving year {year}...")
         year_dir  = dir / f"{year}"
         os.makedirs(year_dir, exist_ok=True)
         
@@ -83,7 +89,7 @@ def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path | str,
         os.makedirs(edges_dir, exist_ok=True)
         E_year = E.filter(E.year == year)
         layers = E_year[["layer"]].distinct().to_pandas().layer
-        print(f"layers: {layers}")
+        logger.info(f"\t\tLayers: {layers}")
         for layer in layers:
             layer_dir = edges_dir / f"{layer}"
             # TODO further partition?
@@ -94,8 +100,12 @@ def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path | str,
                 .order_by(["src", "relationtype", "dst"])
             )
             E_year_layer.to_parquet_dir(layer_dir, existing_data_behavior=existing_data_behavior, **kwargs)
+            logger.info(f"\t\tSaved layer {layer}")
+        logger.info(f"\tFinished saving year {year}")
+    logger.info(f"Finished saving network to {dir}.")    
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     m = load_network("data")
 
     save_network(edges = m.edges, vertices=m.vertices, dir = "data2")

@@ -285,6 +285,8 @@ dependencies = [
 dev = [
     { name = "pytest" },
     { name = "ruff" },
+]
+docs = [
     { name = "sphinx" },
 ]
 
@@ -302,8 +304,8 @@ requires-dist = [
 dev = [
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "ruff", specifier = ">=0.15.4" },
-    { name = "sphinx", specifier = ">=9.1.0" },
 ]
+docs = [{ name = "sphinx", specifier = ">=9.1.0" }]
 
 [[package]]
 name = "numpy"

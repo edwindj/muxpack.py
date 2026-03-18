@@ -13,9 +13,6 @@ def test_multiplex():
     dst = edges.select(id="dst", year="year").distinct()
 
     vertices = src.union(dst).distinct().execute()
-    # print(f"{edges.get_backend()}")
-    # ddb.to_parquet(vertices, "data/vertices.parquet")
-    # m = Multiplex(edges)
 
 
 def test_layers():

@@ -3,6 +3,9 @@ import ibis
 from scipy.sparse import csr_matrix
 from muxpack.multiplex import Multiplex
 from typing import Tuple, Generator
+
+import logging
+logger = logging.getLogger(__name__)
 # from collections.abc import Generator
 
 def to_row_col_idx(edges: Table, vertices: Table) -> Table:
@@ -31,16 +34,16 @@ def to_row_col_idx(edges: Table, vertices: Table) -> Table:
         .mutate(data = True)
         .select("data", "row", "col")
     )
-    # print(idx_edges.execute())
+    logger.debug(f"Created row-col index table with {idx_edges.count().execute()} edges.")
     return idx_edges
 
 def idx_to_csr_matrix(idx: Table, vertices: Table) -> csr_matrix:
     # TODO maybe to_parquet()?
     coo = idx.execute()
-    # print(coo)
+    logger.debug(f"COO matrix data: {coo}")
 
     n = vertices.count().execute()
-    # print(f"n: {n}, \ncoo:{coo}")
+    logger.debug(f"Number of vertices: {n}")
     M = csr_matrix((coo["data"], (coo["row"], coo["col"])), shape=(n,n))
     return M
 
@@ -89,6 +92,7 @@ def to_year_csr_matrix(edges: Table, vertices: Table | None, years: list[int]= [
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     import pandas as pd
     edges = pd.DataFrame({
         "src" : [100,100],

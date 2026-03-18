@@ -1,7 +1,6 @@
-.. automodule:: muxpack
-    :members:
+Usage
+=====
 
+The API reference for module and class members is available on the API page.
 
-.. autoclass:: muxpack.Multiplex
-    :members:
-    :undoc-members:
+See ``api.rst`` for generated API documentation.

@@ -3,12 +3,15 @@ import ibis
 from .check import check_edges, check_vertices
 from pathlib import Path
 from . import io
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Multiplex:
     """
-    A multiplex is a graph with multiple layers. Each layer represents a
-    different type of relationship between the same set of vertices. For
-    example, in a social network, one layer could represent friendships, while
+    A multiplex is a graph with multiple layers, spanning multiple years. 
+    Each layer represents a different type of relationship between the same set of vertices, during one year.
+    For example, in a social network, one layer could represent friendships, while
     another layer could represent professional connections.
     """
 
@@ -19,7 +22,7 @@ class Multiplex:
     vertices: ibis.Table
 
     #
-    all_vertices: ibis.Table
+    vertex_ids: ibis.Table
 
     def __init__(self, edges: ibis.Table, vertices: ibis.Table = None) -> None:
         if not check_edges(edges):
@@ -32,7 +35,8 @@ class Multiplex:
         #TODO derive vertices from edges if not provided
         self.vertices = vertices
         if not vertices is None:
-            self.all_vertices = vertices[["id"]].distinct() 
+            logger.info("Vertices table provided, using it as is.")
+            self.vertex_ids = vertices[["id"]].distinct() 
     
     def years(self) -> list[int]:
         """
@@ -58,12 +62,13 @@ class Multiplex:
         V = src.union(dst, distinct=True).to_pyarrow()
         V_all = V[[V.id]].to_pyarrow()
         self.vertices = ibis.memtable(V)
-        self.all_vertices = ibis.memtable(V_all)
+        self.vertex_ids = ibis.memtable(V_all)
 
     def save(self, dir: Path | str, **kw_args):
         """
         Save a multiplex to disk, using the specification.
-        Note that saving does 
+        Note that saving does create the directory if it does not exist, and it
+        will overwrite existing files in the directory.
         """
         edges = self.edges
         vertices = self.vertices
@@ -71,5 +76,4 @@ class Multiplex:
             mp = Multiplex(edges = self.edges)
             mp.update_vertices()
             vertices = mp.vertices
-        
         io.save_network(edges, vertices, dir = dir, **kw_args)
