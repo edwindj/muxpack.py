@@ -1,10 +1,12 @@
 import pytest
 import muxpack
+from collections.abc import Generator
+from typing import Tuple
 import ibis
 from scipy.sparse import csr_matrix
 
 @pytest.fixture()
-def edges_vertices():
+def edges_vertices() -> Generator[Tuple[ibis.Table, ibis.Table]]:
     print("Create edges")
     E = ibis.memtable({
         "src": [100,200,300],
@@ -22,3 +24,4 @@ def test_to_csr_matrix(edges_vertices):
     m = muxpack.to_csr_matrix(edges, vertices)
 
     assert(isinstance(m, csr_matrix))
+    print(m.toarray())

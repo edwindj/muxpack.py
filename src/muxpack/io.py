@@ -31,13 +31,19 @@ def load_network(dir: Path) -> Multiplex:
     Multiplex
         The loaded multiplex network.
     """
-    print("Loading data...")
+    print(f"Loading data from {dir}...")
     edges = ibis.read_parquet(f"{dir}/*/edges/**/*.parquet", table_name="edges")
-    print(edges)
-    m = Multiplex(edges=edges)
+    
+    try:
+        vertices = ibis.read_parquet(f"{dir}/*/vertices.parquet")
+    except:
+        vertices = None
+    
+    m = Multiplex(edges=edges, vertices=vertices)
     return m
 
-def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path, **kwargs):
+def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path | str, 
+                 existing_data_behavior = "delete_matching", **kwargs):
     """
     Save edges and vertices to dir. 
     Note that:
@@ -54,14 +60,14 @@ def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path, **kwargs):
     """
     E = edges
     V = vertices
+    dir = Path(dir)
 
     # We do a manual partitioning to have maximum control.
     # alternative and potentially more efficient would be partitioning using
     # duckdb, however, that would pose some problems:
     # - Hive naming convention does not follow the muxpack specification
     # - Hive partitioning removes columns that are partitioned.
-
-    years = E.distinct("year").to_pandas()["year"]
+    years = E[["year"]].distinct().to_pandas().year
     
     for year in years:
         year_dir  = dir / f"{year}"
@@ -74,15 +80,22 @@ def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path, **kwargs):
 
         # writing edges
         edges_dir = year_dir / "edges"
+        os.makedirs(edges_dir, exist_ok=True)
         E_year = E.filter(E.year == year)
-        layers = E_year.distinct("layer").to_pandas()["layer"]
+        layers = E_year[["layer"]].distinct().to_pandas().layer
+        print(f"layers: {layers}")
         for layer in layers:
             layer_dir = edges_dir / f"{layer}"
             # TODO further partition?
             os.makedirs(layer_dir, exist_ok=True)
-            E_year_layer = E_year.filter(E_year.layer == layer)
-            E_year_layer.to_parquet_dir(layer_dir, **kwargs)
+            E_year_layer = (
+                E_year
+                .filter(E_year.layer == layer)
+                .order_by(["src", "relationtype", "dst"])
+            )
+            E_year_layer.to_parquet_dir(layer_dir, existing_data_behavior=existing_data_behavior, **kwargs)
 
 if __name__ == "__main__":
-    m = load_network("data/network")
-    print(m.edges)
+    m = load_network("data")
+
+    save_network(edges = m.edges, vertices=m.vertices, dir = "data2")

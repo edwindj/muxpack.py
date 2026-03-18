@@ -72,6 +72,7 @@ def to_year_csr_matrix(edges: Table, vertices: Table | None, years: list[int]= [
     """
     if len(years) == 0:
         years = (edges.distinct("year").execute())["year"]
+        
     for year in years:
         E_y = edges.filter(edges.year == year)
         if vertices is not None:
