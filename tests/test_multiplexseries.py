@@ -1,0 +1,46 @@
+import ibis
+from muxpack import MultiplexSeries
+
+def test_multiplexseries():
+    ddb = ibis.duckdb.connect()
+    edges = ddb.read_parquet("data/*/edges/**/*.parquet")
+    mp = MultiplexSeries(edges=edges)
+    assert mp.edges is not None
+
+def test_layers_and_years():
+    edges = ibis.memtable({
+        "src": [1, 2, 2, 1],
+        "dst": [2, 3, 4, 2],
+        "year": [2020, 2020, 2021, 2021],
+        "layer": ["A", "B", "A", "B"],
+        "relationtype": [1,2, 1, 2]
+    })
+    vertices = ibis.memtable({
+        "id": [1, 2, 3, 4],
+        "year": [2020, 2020, 2021, 2021]
+    })
+    m = MultiplexSeries(edges, vertices)
+    assert len(m.layers()) == 2
+    for l in m.layers():
+        assert l in ["A", "B"]
+
+    assert len(m.years()) == 2
+    for y in m.years():
+        assert y in [2020, 2021]
+
+def test_get_multiplex():
+    edges = ibis.memtable({
+        "src": [1, 2, 2, 1],
+        "dst": [2, 3, 4, 2],
+        "year": [2020, 2020, 2021, 2021],
+        "layer": ["A", "B", "A", "B"],
+        "relationtype": [1,2, 1, 2]
+    })
+    vertices = ibis.memtable({
+        "id": [1, 2, 3, 4],
+        "year": [2020, 2020, 2021, 2021]
+    })
+    m = MultiplexSeries(edges, vertices)
+    m.update_vertices()
+    mp_2020 = m.get_multiplex(2020)
+    assert mp_2020.year == 2020

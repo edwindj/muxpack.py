@@ -4,9 +4,11 @@ from pathlib import Path
 import os
 import logging
 
+from .multiplexseries import MultiplexSeries
+
 logger = logging.getLogger(__name__)
 
-def load_network(dir: Path) -> Multiplex:
+def load_network(dir: Path) -> MultiplexSeries:
     """
     Load a multiplex network from a directory containing Parquet files.
 
@@ -31,7 +33,7 @@ def load_network(dir: Path) -> Multiplex:
     
     Returns
     -------
-    Multiplex
+    MultiplexSeries
         The loaded multiplex network.
     """
     logger.info(f"Loading data from {dir}...")
@@ -42,7 +44,7 @@ def load_network(dir: Path) -> Multiplex:
     except:
         vertices = None
     
-    m = Multiplex(edges=edges, vertices=vertices)
+    m = MultiplexSeries(edges=edges, vertices=vertices)
     return m
 
 def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path | str, 
