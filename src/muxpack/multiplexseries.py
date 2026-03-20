@@ -18,12 +18,22 @@ class MultiplexSeries:
     edges: ibis.Table
 
     #: The vertices of the multiplex. This is a table with a column "id","year" and optional additional columns.
-    vertices: ibis.Table
+    vertices: ibis.Table | None
 
     #
     vertex_ids: ibis.Table
 
-    def __init__(self, edges: ibis.Table, vertices: ibis.Table = None) -> None:
+    relationtypes: ibis.Table | None
+
+    def __init__(self, edges: ibis.Table, vertices: ibis.Table = None, relationtypes: ibis.Table = None) -> None:
+        """
+        Initialize a multiplex series with the given edges and vertices tables.
+        The edges table must have columns "src", "dst", "year", "layer" and
+        "relationtype". The vertices table must have a column "id" and optional
+        additional columns, and must have a column "year" if the edges table has
+        a column "year". The relationtypes table must have a column
+        "relationtype", "layer", "label" and optional additional columns.
+        """
         if not check_edges(edges):
             raise ValueError("Invalid edges table")
         
@@ -33,6 +43,8 @@ class MultiplexSeries:
         self.edges = edges
         #TODO derive vertices from edges if not provided
         self.vertices = vertices
+        self.relationtypes = relationtypes
+
         if not vertices is None:
             logger.info("Vertices table provided, using it as is.")
             self.vertex_ids = vertices[["id"]].distinct() 
@@ -79,6 +91,21 @@ class MultiplexSeries:
         V_all = V.select(V.id)
         self.vertices = ibis.memtable(V.to_pyarrow())
         self.vertex_ids = ibis.memtable(V_all.to_pyarrow())
+
+    def update_relationtypes(self) -> None:
+        """
+        Update the relationtypes table based on the edges table. This is useful if the relationtypes table was not provided at initialization.
+        """
+        relationtypes = (
+            self.edges
+            .select(self.edges.relationtype, self.edges.layer)
+            .distinct()
+            .order_by("layer", "relationtype")
+            .to_pandas()
+            .assign(label = lambda df: df["layer"].astype(str) + "_" + df["relationtype"].astype(str))
+        )
+        logger.debug(f"Updated relationtypes table with {len(relationtypes)} unique relationtypes.")
+        self.relationtypes = ibis.memtable(relationtypes)
 
     def get_multiplex(self, year: int) -> Multiplex:
         """

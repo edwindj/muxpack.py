@@ -43,8 +43,13 @@ def load_network(dir: Path) -> MultiplexSeries:
         vertices = ibis.read_parquet(f"{dir}/*/vertices.parquet")
     except:
         vertices = None
+
+    try:
+        relationtypes = ibis.read_parquet(f"{dir}/*/relationtypes.csv")
+    except:
+        relationtypes = None
     
-    m = MultiplexSeries(edges=edges, vertices=vertices)
+    m = MultiplexSeries(edges=edges, vertices=vertices, relationtypes=relationtypes)
     return m
 
 def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path | str, 
