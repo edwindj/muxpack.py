@@ -17,6 +17,12 @@ dependencies = [
     "scipy>=1.17.1",
 ]
 
+[project.urls]
+Homepage = "https://codeberg.org/CBS-Networktools/muxpack.py"
+Documentation = "https://readthedocs.org"
+Repository = "https://codeberg.org/CBS-Networktools/muxpack.py"
+"Bug Tracker" = "https://codeberg.org/CBS-Networktools/muxpack.py/issues"
+
 [project.scripts]
 muxpack = "muxpack:main"
 
