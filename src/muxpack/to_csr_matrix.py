@@ -26,6 +26,7 @@ def to_row_col_idx(edges: Table, vertices: Table) -> Table:
     row = v.select(src = "id", row = "idx")
     col = v.select(dst = "id", col = "idx")
 
+    # may sum the number of columns
     idx_edges = (
         edges[["src", "dst"]]
         .distinct()

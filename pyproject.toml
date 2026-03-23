@@ -11,6 +11,7 @@ requires-python = ">=3.13"
 dependencies = [
     "duckdb>=1.4.4",
     "ibis-framework[duckdb]>=12.0.0",
+    "networkx>=3.6.1",
     "pandas>=3.0.1",
     "pyarrow>=23.0.1",
     "pyarrow-hotfix>=0.7",

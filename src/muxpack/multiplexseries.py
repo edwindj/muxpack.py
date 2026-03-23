@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class MultiplexSeries:
     """
-    A multiplexseries is a series of Multiplex graph with multiple layers, spanning multiple years. 
+    A multiplexseries is a series of Multiplex graphs with multiple layers, spanning multiple periods. 
     """
 
     #: The edges of the multiplex. This is a table with columns "src", "dst", "year", "layer" and "relationtype".
@@ -49,9 +49,9 @@ class MultiplexSeries:
             logger.info("Vertices table provided, using it as is.")
             self.vertex_ids = vertices[["id"]].distinct() 
     
-    def years(self) -> list[int]:
+    def periods(self) -> list[int]:
         """
-        Get the list of years in the multiplex.
+        Get the list of periods in the multiplex.
         """
         years = (
             self.edges
@@ -82,7 +82,8 @@ class MultiplexSeries:
     
     def update_vertices(self) -> None:
         """
-        Update the vertices table based on the edges table. This is useful if the vertices table was not provided at initialization.
+        Update the vertices table based on the edges table. This is useful if
+        the vertices table was not provided at initialization.
         """
         src = self.edges.select(id="src",year = "year").distinct()
         dst = self.edges.select(id="dst",year = "year").distinct()
@@ -94,7 +95,8 @@ class MultiplexSeries:
 
     def update_relationtypes(self) -> None:
         """
-        Update the relationtypes table based on the edges table. This is useful if the relationtypes table was not provided at initialization.
+        Update the relationtypes table based on the edges table. This is useful
+        if the relationtypes table was not provided at initialization.
         """
         relationtypes = (
             self.edges
@@ -122,16 +124,56 @@ class MultiplexSeries:
         """
         Get a list of multiplexes for all years in the multiplex series.
         """
-        years = self.years()
+        years = self.periods()
         return [(year, self.get_multiplex(year)) for year in years]
+    
+    def filter_edges(self, years: list[int] = [], layers: list[str] = [], relationtypes: list[int] =[]) -> MultiplexSeries:
+        """
+        Return a filtered version of the multiplex network. Note that an
+        empty list means no filtering.
+
+        Args:
+            - years: list of years to filter on
+            - layers: list of layers to filter on
+            - relationtype: list of relationtypes to filter on
+
+        Return:
+            - MultiplexSeries object 
+        """
+        E = self.edges
+
+        if len(years) > 0:
+            E = E.filter(E.year in years)
+         
+        if len(layers) > 0:
+            E = E.filter(E.layer in layers)
+        
+        if len(relationtypes) > 0:
+            E = E.filter(E.relationtype in relationtypes)
+
+        return MultiplexSeries(edges = E, vertices= self.vertices)
+    
+    def filter_vertices(self, vertex_ids: list[str] = []) -> MultiplexSeries:
+        V = self.vertices
+        if len(vertex_ids) > 0:
+            I = ibis.memtable({"id": vertex_ids})
+            V = V.semi_join(I, I.id == V.id)
+        return V
     
     def collapse(self) -> Multiplex:
         """
-        Collapse the multiplex series into a single multiplex, by ignoring the year information. This is useful for analyses that do not require temporal.
+        Collapse the multiplex series into a single multiplex, by ignoring the
+        period information. This is useful for analyses that do not require
+        temporal information
         """
-        E = self.edges.select(src="src", dst="dst", layer="layer", relationtype="relationtype").distinct()
+        E = self.edges.select(["src", "dst", "layer", "relationtype"]).distinct()
         if self.vertices is not None:
-            V = self.vertices[["id"]].distinct()
+            V = (
+                self
+                .vertices
+                .select("id")
+                .distinct()
+            )
         else:
             V = None
         return Multiplex(edges=E, vertices=V, year = None)

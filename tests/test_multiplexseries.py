@@ -24,8 +24,8 @@ def test_layers_and_years():
     for l in m.layers():
         assert l in ["A", "B"]
 
-    assert len(m.years()) == 2
-    for y in m.years():
+    assert len(m.periods()) == 2
+    for y in m.periods():
         assert y in [2020, 2021]
 
 def test_get_multiplex():
