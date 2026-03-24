@@ -4,7 +4,6 @@ from .check import check_edges, check_vertices
 from pathlib import Path
 from . import io
 import logging
-from typing import Tuple
 from scipy.sparse import csr_matrix
 
 logger = logging.getLogger(__name__)

@@ -5,26 +5,28 @@ from muxpack.multiplex import Multiplex
 from typing import Tuple, Generator
 
 import logging
+
 logger = logging.getLogger(__name__)
 # from collections.abc import Generator
 
+
 def to_row_col_idx(edges: Table, vertices: Table) -> Table:
     """
-    Turn the edge list into a row col index table, based on the 
+    Turn the edge list into a row col index table, based on the
     vertices table that is given.
 
     Args:
         edges : needs `src` and `dst` field
         vertices : needs an `id` field, edges will be filtered on id.
- 
+
     Returns:
-        lazy edges table that only contains edges with id in vertices. 
+        lazy edges table that only contains edges with id in vertices.
         the row and column refer to the row number of the vertices Table.
         The result can be used by `to_csr_matrix`
     """
-    v = vertices.select("id").mutate(idx = row_number())
-    row = v.select(src = "id", row = "idx")
-    col = v.select(dst = "id", col = "idx")
+    v = vertices.select("id").mutate(idx=row_number())
+    row = v.select(src="id", row="idx")
+    col = v.select(dst="id", col="idx")
 
     # may sum the number of columns
     idx_edges = (
@@ -32,11 +34,14 @@ def to_row_col_idx(edges: Table, vertices: Table) -> Table:
         .distinct()
         .inner_join(row, "src")
         .inner_join(col, "dst")
-        .mutate(data = True)
+        .mutate(data=True)
         .select("data", "row", "col")
     )
-    logger.debug(f"Created row-col index table with {idx_edges.count().execute()} edges.")
+    logger.debug(
+        f"Created row-col index table with {idx_edges.count().execute()} edges."
+    )
     return idx_edges
+
 
 def idx_to_csr_matrix(idx: Table, vertices: Table) -> csr_matrix:
     # TODO maybe to_parquet()?
@@ -45,8 +50,9 @@ def idx_to_csr_matrix(idx: Table, vertices: Table) -> csr_matrix:
 
     n = vertices.count().execute()
     logger.debug(f"Number of vertices: {n}")
-    M = csr_matrix((coo["data"], (coo["row"], coo["col"])), shape=(n,n))
+    M = csr_matrix((coo["data"], (coo["row"], coo["col"])), shape=(n, n))
     return M
+
 
 def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
     """
@@ -55,7 +61,7 @@ def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
     Parameters:
         edges: `src`, `dst` fields
         vertices: Table representing nodes/vertices, needs `id` field. `edges` will
-        be filtered on whether they exist in vertices 
+        be filtered on whether they exist in vertices
 
     Returns:
         sparse matrix as `csr_matrix` object
@@ -66,7 +72,10 @@ def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
     M = idx_to_csr_matrix(edges_row_col, vertices=vertices)
     return M
 
-def to_period_csr_matrix(edges: Table, vertices: Table | None, periods: list[int]= []) -> Generator[Tuple[csr_matrix, int]]:
+
+def to_period_csr_matrix(
+    edges: Table, vertices: Table | None, periods: list[int] = []
+) -> Generator[Tuple[csr_matrix, int]]:
     """
     Generates a sparse matrix for all periods given
 
@@ -75,13 +84,7 @@ def to_period_csr_matrix(edges: Table, vertices: Table | None, periods: list[int
         vertices: Optional Table with vertex information, needs a `id` and `period`
     """
     if len(periods) == 0:
-        periods = (
-            edges[["period"]]
-            .distinct()
-            .to_pandas()
-            .period
-            .tolist()
-        )
+        periods = edges[["period"]].distinct().to_pandas().period.tolist()
     for period in periods:
         E_y = edges.filter(edges.period == period)
         if vertices is not None:
@@ -95,17 +98,13 @@ def to_period_csr_matrix(edges: Table, vertices: Table | None, periods: list[int
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     import pandas as pd
-    edges = pd.DataFrame({
-        "src" : [100,100],
-        "dst" : [300,200]
-    })
-    vertices = pd.DataFrame({
-        "id": [100,200,300]
-    })
+
+    edges = pd.DataFrame({"src": [100, 100], "dst": [300, 200]})
+    vertices = pd.DataFrame({"id": [100, 200, 300]})
 
     E = ibis.memtable(edges)
     V = ibis.memtable(vertices)
-    
+
     V1 = V.filter(V.id < 250)
     idx = to_row_col_idx(E, V1)
     M1 = idx_to_csr_matrix(idx, V1)

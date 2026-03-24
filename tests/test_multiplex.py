@@ -1,6 +1,6 @@
 
 import ibis
-from muxpack import MultiplexSeries, Multiplex
+from muxpack import Multiplex
 
 def test_layers():
     edges = ibis.memtable({
@@ -14,6 +14,6 @@ def test_layers():
     })
     m = Multiplex(edges, vertices, period=2020)
     assert len(m.layers()) == 2
-    for l in m.layers():
-        assert l in ["A", "B"]
+    for layer in m.layers():
+        assert layer in ["A", "B"]
     assert m.period == 2020

@@ -2,12 +2,14 @@ from ibis.expr.types import Table
 from ibis import dtype
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-def check_edges(edges: Table, check_period = True) -> bool:
+
+def check_edges(edges: Table, check_period=True) -> bool:
     """
     Check that the edges table has the required columns and types.
-    
+
     :param edges: The edges table to check.
     :param check_period: Whether to check the "period" column.
     :return: True if the edges table is valid, False otherwise.
@@ -19,7 +21,7 @@ def check_edges(edges: Table, check_period = True) -> bool:
         "dst": "integer",
         "period": "integer",
         "layer": "string",
-        "relationtype": "integer"
+        "relationtype": "integer",
     }
 
     if not check_period:
@@ -27,10 +29,11 @@ def check_edges(edges: Table, check_period = True) -> bool:
 
     if check_column_type(edges, expect_types):
         return True
-    
+
     return False
 
-def check_vertices(vertices: Table, check_period = True) -> bool:
+
+def check_vertices(vertices: Table, check_period=True) -> bool:
     """
     Check that the vertices table has the required columns and types.
 
@@ -43,10 +46,8 @@ def check_vertices(vertices: Table, check_period = True) -> bool:
     if not required_columns.issubset(set(vertices.columns)):
         logger.warning(f"Missing columns: {required_columns - set(vertices.columns)}")
         return False
-    
-    expect_types = {
-        "id": "integer"
-    }
+
+    expect_types = {"id": "integer"}
 
     if check_period:
         expect_types["period"] = "integer"
@@ -78,7 +79,9 @@ def check_column_type(t: Table, expected_types: dict[str, str]) -> bool:
         # most specific check, if the expected type is exactly the same as the column type, then it's valid
         if dtype(expected_type) == coltype:
             continue
-        
-        logger.warning(f"Incorrect type for column '{column}': '{coltype}', expected {expected_type}")
+
+        logger.warning(
+            f"Incorrect type for column '{column}': '{coltype}', expected {expected_type}"
+        )
         return False
     return True

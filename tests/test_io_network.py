@@ -1,9 +1,11 @@
-import pytest
 import muxpack
 import ibis
 import tempfile
+from collections.abc import Generator
+import pytest
 
-def create_data() -> muxpack.MultiplexSeries:
+@pytest.fixture()
+def simple_mps() -> Generator[muxpack.MultiplexSeries]:
     edges = ibis.memtable({
         "src": [1, 2, 2, 1],
         "dst": [2, 3, 4, 2],
@@ -16,27 +18,26 @@ def create_data() -> muxpack.MultiplexSeries:
         "period": [2020, 2020, 2021, 2021]
     })
     m = muxpack.MultiplexSeries(edges, vertices)
-    return m
+    yield m
 
 def test_load_data():
     mp = muxpack.load_network("data")
     assert mp is not None
 
-def test_save_data():
-    mp = create_data()
+def test_save_data(simple_mps):
     with tempfile.TemporaryDirectory() as tmpdir:
+        mp = muxpack.MultiplexSeries(simple_mps.edges, simple_mps.vertices)
         mp.save(tmpdir)
-        mp2 = muxpack.load_network(tmpdir)
         for layer in mp.layers():
-            assert(layer in mp2.layers())
+            assert(layer in simple_mps.layers())
 
         for period in mp.periods():
-            assert(period in mp2.periods())
+            assert(period in simple_mps.periods())
         
         E1 = mp.edges.to_pandas()
-        E2 = mp2.edges.to_pandas()
+        E2 = simple_mps.edges.to_pandas()
         V1 = mp.vertices.to_pandas()
-        V2 = mp.vertices.to_pandas()
+        V2 = simple_mps.vertices.to_pandas()
 
         assert(E1.ndim == E2.ndim)
         assert(len(E1) == len(E2))
