@@ -14,10 +14,10 @@ class MultiplexSeries:
     A multiplexseries is a series of Multiplex graphs with multiple layers, spanning multiple periods. 
     """
 
-    #: The edges of the multiplex. This is a table with columns "src", "dst", "year", "layer" and "relationtype".
+    #: The edges of the multiplex. This is a table with columns "src", "dst", "period", "layer" and "relationtype".
     edges: ibis.Table
 
-    #: The vertices of the multiplex. This is a table with a column "id","year" and optional additional columns.
+    #: The vertices of the multiplex. This is a table with a column "id","period" and optional additional columns.
     vertices: ibis.Table | None
 
     #
@@ -28,10 +28,10 @@ class MultiplexSeries:
     def __init__(self, edges: ibis.Table, vertices: ibis.Table = None, relationtypes: ibis.Table = None) -> None:
         """
         Initialize a multiplex series with the given edges and vertices tables.
-        The edges table must have columns "src", "dst", "year", "layer" and
+        The edges table must have columns "src", "dst", "period", "layer" and
         "relationtype". The vertices table must have a column "id" and optional
-        additional columns, and must have a column "year" if the edges table has
-        a column "year". The relationtypes table must have a column
+        additional columns, and must have a column "period" if the edges table has
+        a column "period". The relationtypes table must have a column
         "relationtype", "layer", "label" and optional additional columns.
         """
         if not check_edges(edges):
@@ -53,17 +53,17 @@ class MultiplexSeries:
         """
         Get the list of periods in the multiplex.
         """
-        years = (
+        periods = (
             self.edges
-            .select(self.edges.year)
+            .select(self.edges.period)
             .distinct()
-            .order_by("year")
+            .order_by("period")
             .to_pyarrow()
-            .column("year")
+            .column("period")
             .to_pylist()
         )
-        # years = self.edges[["year"]].distinct().to_pandas().year.tolist()
-        return years
+        # periods = self.edges[["period"]].distinct().to_pandas().period.tolist()
+        return periods
     
     def layers(self) -> list[str]:
         """
@@ -85,8 +85,8 @@ class MultiplexSeries:
         Update the vertices table based on the edges table. This is useful if
         the vertices table was not provided at initialization.
         """
-        src = self.edges.select(id="src",year = "year").distinct()
-        dst = self.edges.select(id="dst",year = "year").distinct()
+        src = self.edges.select(id="src",period = "period").distinct()
+        dst = self.edges.select(id="dst",period = "period").distinct()
 
         V = src.union(dst, distinct=True)
         V_all = V.select(V.id)
@@ -109,31 +109,31 @@ class MultiplexSeries:
         logger.debug(f"Updated relationtypes table with {len(relationtypes)} unique relationtypes.")
         self.relationtypes = ibis.memtable(relationtypes)
 
-    def get_multiplex(self, year: int) -> Multiplex:
+    def get_multiplex(self, period: int) -> Multiplex:
         """
-        Get a multiplex for a specific year.
+        Get a multiplex for a specific period.
         """
-        E_y = self.edges.filter(self.edges.year == year)
+        E_y = self.edges.filter(self.edges.period == period)
         if self.vertices is not None:
-            V_y = self.vertices.filter(self.vertices.year == year)
+            V_y = self.vertices.filter(self.vertices.period == period)
         else:
             V_y = None
-        return Multiplex(edges=E_y, vertices=V_y, year = year)
+        return Multiplex(edges=E_y, vertices=V_y, period = period)
     
     def multiplexes(self) -> list[Tuple[int,Multiplex]]:
         """
-        Get a list of multiplexes for all years in the multiplex series.
+        Get a list of multiplexes for all periods in the multiplex series.
         """
-        years = self.periods()
-        return [(year, self.get_multiplex(year)) for year in years]
+        periods = self.periods()
+        return [(period, self.get_multiplex(period)) for period in periods]
     
-    def filter_edges(self, years: list[int] = [], layers: list[str] = [], relationtypes: list[int] =[]) -> MultiplexSeries:
+    def filter_edges(self, periods: list[int] = [], layers: list[str] = [], relationtypes: list[int] =[]) -> MultiplexSeries:
         """
         Return a filtered version of the multiplex network. Note that an
         empty list means no filtering.
 
         Args:
-            - years: list of years to filter on
+            - periods: list of periods to filter on
             - layers: list of layers to filter on
             - relationtype: list of relationtypes to filter on
 
@@ -144,8 +144,8 @@ class MultiplexSeries:
 
         flt: list[ibis.BooleanValue] = []
 
-        if len(years) > 0:
-            flt.append(E.year.isin(years))
+        if len(periods) > 0:
+            flt.append(E.period.isin(periods))
          
         if len(layers) > 0:
             flt.append(E.layer.isin(layers))
@@ -180,7 +180,7 @@ class MultiplexSeries:
             )
         else:
             V = None
-        return Multiplex(edges=E, vertices=V, year = None)
+        return Multiplex(edges=E, vertices=V, period = None)
     
     def save(self, dir: Path | str, **kw_args):
         """

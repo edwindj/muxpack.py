@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 class Multiplex:
     """
     A multiplex is a graph with multiple layers. 
-    Each layer represents a different type of relationship between the same set of vertices, during one year.
+    Each layer represents a different type of relationship between the same set of vertices, during one period.
     For example, in a social network, one layer could represent friendships, while
     another layer could represent professional connections.
-    For multiple years, use MultiplexSeries.
+    For multiple periods, use MultiplexSeries.
     """
 
     #: The edges of the multiplex. This is a table with columns "src", "dst", "layer" and "relationtype".
@@ -24,16 +24,16 @@ class Multiplex:
     #: The vertices of the multiplex. This is a table with a column "id" and optional additional columns.
     vertices: ibis.Table
 
-    year: int | None
+    period: int | None
 
-    def __init__(self, edges: ibis.Table, vertices: ibis.Table = None, year: int | None = None) -> None:
-        if not check_edges(edges, check_year=False):
+    def __init__(self, edges: ibis.Table, vertices: ibis.Table = None, period: int | None = None) -> None:
+        if not check_edges(edges, check_period=False):
             raise ValueError("Invalid edges table")
         
-        if vertices is not None and not check_vertices(vertices, check_year=False):
+        if vertices is not None and not check_vertices(vertices, check_period=False):
             raise ValueError("Invalid vertices table")
 
-        self.year = year 
+        self.period = period 
         self.edges = edges
         #TODO derive vertices from edges if not provided
         self.vertices = vertices
@@ -90,7 +90,7 @@ class Multiplex:
             mp = Multiplex(edges = self.edges)
             mp.update_vertices()
             vertices = mp.vertices
-        year = self.year if self.year is not None else 0
-        edges = edges.with_column("year", ibis.literal(year))
-        vertices = vertices.with_column("year", ibis.literal(year))
+        period = self.period if self.period is not None else 0
+        edges = edges.with_column("period", ibis.literal(period))
+        vertices = vertices.with_column("period", ibis.literal(period))
         io.save_network(edges, vertices, dir = dir, **kw_args)

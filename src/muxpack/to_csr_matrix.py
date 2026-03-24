@@ -60,36 +60,36 @@ def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
     Returns:
         sparse matrix as `csr_matrix` object
     """
-    # vertices may contain multiple years
+    # vertices may contain multiple periods
     vertices = vertices[["id"]].distinct()
     edges_row_col = to_row_col_idx(edges, vertices=vertices)
     M = idx_to_csr_matrix(edges_row_col, vertices=vertices)
     return M
 
-def to_year_csr_matrix(edges: Table, vertices: Table | None, years: list[int]= []) -> Generator[Tuple[csr_matrix, int]]:
+def to_period_csr_matrix(edges: Table, vertices: Table | None, periods: list[int]= []) -> Generator[Tuple[csr_matrix, int]]:
     """
-    Generates a sparse matrix for all years given
+    Generates a sparse matrix for all periods given
 
     Parameters:
-        edges: Table with the edges/links needs `src`, `dst`, `year`
-        vertices: Optional Table with vertex information, needs a `id` and `year`
+        edges: Table with the edges/links needs `src`, `dst`, `period`
+        vertices: Optional Table with vertex information, needs a `id` and `period`
     """
-    if len(years) == 0:
-        years = (
-            edges[["year"]]
+    if len(periods) == 0:
+        periods = (
+            edges[["period"]]
             .distinct()
             .to_pandas()
-            .year
+            .period
             .tolist()
         )
-    for year in years:
-        E_y = edges.filter(edges.year == year)
+    for period in periods:
+        E_y = edges.filter(edges.period == period)
         if vertices is not None:
-            V_y = vertices.filter(vertices.year == year)
+            V_y = vertices.filter(vertices.period == period)
         else:
             V_y = None
 
-        yield to_csr_matrix(E_y, V_y), year
+        yield to_csr_matrix(E_y, V_y), period
 
 
 if __name__ == "__main__":

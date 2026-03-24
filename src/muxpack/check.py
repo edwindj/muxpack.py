@@ -4,12 +4,12 @@ from ibis import dtype
 import logging
 logger = logging.getLogger(__name__)
 
-def check_edges(edges: Table, check_year = True) -> bool:
+def check_edges(edges: Table, check_period = True) -> bool:
     """
     Check that the edges table has the required columns and types.
     
     :param edges: The edges table to check.
-    :param check_year: Whether to check the "year" column.
+    :param check_period: Whether to check the "period" column.
     :return: True if the edges table is valid, False otherwise.
     """
 
@@ -17,28 +17,28 @@ def check_edges(edges: Table, check_year = True) -> bool:
     expect_types = {
         "src": "integer",
         "dst": "integer",
-        "year": "integer",
+        "period": "integer",
         "layer": "string",
         "relationtype": "integer"
     }
 
-    if not check_year:
-        expect_types.pop("year", None)
+    if not check_period:
+        expect_types.pop("period", None)
 
     if check_column_type(edges, expect_types):
         return True
     
     return False
 
-def check_vertices(vertices: Table, check_year = True) -> bool:
+def check_vertices(vertices: Table, check_period = True) -> bool:
     """
     Check that the vertices table has the required columns and types.
 
     :param vertices: The vertices table to check.
-    :param check_year: Whether to check the "year" column.
+    :param check_period: Whether to check the "period" column.
     :return: True if the vertices table is valid, False otherwise.
     """
-    required_columns = {"id", "year"} if check_year else {"id"}
+    required_columns = {"id", "period"} if check_period else {"id"}
 
     if not required_columns.issubset(set(vertices.columns)):
         logger.warning(f"Missing columns: {required_columns - set(vertices.columns)}")
@@ -48,8 +48,8 @@ def check_vertices(vertices: Table, check_year = True) -> bool:
         "id": "integer"
     }
 
-    if check_year:
-        expect_types["year"] = "integer"
+    if check_period:
+        expect_types["period"] = "integer"
 
     if not check_column_type(vertices, expect_types):
         return False

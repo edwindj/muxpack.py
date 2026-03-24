@@ -1,5 +1,5 @@
 import ibis
-from muxpack.multiplex import Multiplex
+from .multiplexseries import MultiplexSeries
 from pathlib import Path
 import os
 import logging
@@ -17,31 +17,36 @@ def load_network(dir: Path) -> MultiplexSeries:
     dir : Path
         The directory containing the Parquet files. The expected structure is:
         dir/
-            year1/
+            period1/
                 edges/
                     layer1/
                         *.parquet
                     layer2/
                         *.parquet
-            year2/
+            period2/
                 edges/
                     layer1/
                         *.parquet
                     layer2/
     
-    years and layers are also in the parquet files, but the directory structure is expected to follow this pattern.
+    periods and layers are also in the parquet files, but the directory structure is expected to follow this pattern.
     
     Returns
     -------
-    MultiplexSeries
+    Multiplex
         The loaded multiplex network.
     """
     logger.info(f"Loading data from {dir}...")
-    edges = ibis.read_parquet(f"{dir}/*/edges/**/*.parquet", table_name="edges")
+    con = ibis.duckdb.connect()
     
+    logger.info(f"Loading edges...")
+    edges = con.read_parquet(f"{dir}/*/edges/**/*.parquet", table_name="edges")
+    
+    logger.info(f"Loading vertices")
     try:
-        vertices = ibis.read_parquet(f"{dir}/*/vertices.parquet")
+        vertices = ibis.read_parquet(f"{dir}/*/vertices.parquet", table_name="vertices")
     except:
+        logger.info("No vertices found: ", )
         vertices = None
 
     try:
@@ -79,36 +84,36 @@ def save_network(edges: ibis.Table, vertices: ibis.Table, dir: Path | str,
     # duckdb, however, that would pose some problems:
     # - Hive naming convention does not follow the muxpack specification
     # - Hive partitioning removes columns that are partitioned.
-    years = E[["year"]].distinct().to_pandas().year
+    periods = E[["period"]].distinct().to_pandas().period
     
-    for year in years:
-        logger.info(f"\tSaving year {year}...")
-        year_dir  = dir / f"{year}"
-        os.makedirs(year_dir, exist_ok=True)
+    for period in periods:
+        period_dir  = dir / f"{period}"
+        os.makedirs(period_dir, exist_ok=True)
+
         
         # writing vertices
-        vertices_file = year_dir / "vertices.parquet"
-        V_year = V.filter(V.year == year)
-        V_year.to_parquet(vertices_file)
+        vertices_file = period_dir / "vertices.parquet"
+        V_period = V.filter(V.period == period)
+        V_period.to_parquet(vertices_file)
 
         # writing edges
-        edges_dir = year_dir / "edges"
+        edges_dir = period_dir / "edges"
         os.makedirs(edges_dir, exist_ok=True)
-        E_year = E.filter(E.year == year)
-        layers = E_year[["layer"]].distinct().to_pandas().layer
-        logger.info(f"\t\tLayers: {layers}")
+        E_period = E.filter(E.period == period)
+        layers = E_period[["layer"]].distinct().to_pandas().layer
+        print(f"layers: {layers}")
         for layer in layers:
             layer_dir = edges_dir / f"{layer}"
             # TODO further partition?
             os.makedirs(layer_dir, exist_ok=True)
-            E_year_layer = (
-                E_year
-                .filter(E_year.layer == layer)
+            E_period_layer = (
+                E_period
+                .filter(E_period.layer == layer)
                 .order_by(["src", "relationtype", "dst"])
             )
-            E_year_layer.to_parquet_dir(layer_dir, existing_data_behavior=existing_data_behavior, **kwargs)
+            E_period_layer.to_parquet_dir(layer_dir, existing_data_behavior=existing_data_behavior, **kwargs)
             logger.info(f"\t\tSaved layer {layer}")
-        logger.info(f"\tFinished saving year {year}")
+        logger.info(f"\tFinished saving period {period}")
     logger.info(f"Finished saving network to {dir}.")    
 
 if __name__ == "__main__":
