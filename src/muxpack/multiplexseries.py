@@ -142,15 +142,19 @@ class MultiplexSeries:
         """
         E = self.edges
 
+        flt: list[ibis.BooleanValue] = []
+
         if len(years) > 0:
-            E = E.filter(E.year in years)
+            flt.append(E.year.isin(years))
          
         if len(layers) > 0:
-            E = E.filter(E.layer in layers)
+            flt.append(E.layer.isin(layers))
         
         if len(relationtypes) > 0:
-            E = E.filter(E.relationtype in relationtypes)
-
+            flt.append(E.relationtype.isin(relationtypes))
+        
+        logger.debug("Filter: f{flt}")
+        E = E.filter(flt)
         return MultiplexSeries(edges = E, vertices= self.vertices)
     
     def filter_vertices(self, vertex_ids: list[str] = []) -> MultiplexSeries:
