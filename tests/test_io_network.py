@@ -27,11 +27,11 @@ def test_save_data():
     with tempfile.TemporaryDirectory() as tmpdir:
         mp.save(tmpdir)
         mp2 = muxpack.load_network(tmpdir)
-        for l in mp.layers():
-            assert(l in mp2.layers())
+        for layer in mp.layers():
+            assert(layer in mp2.layers())
 
-        for p in mp.periods():
-            assert(p in mp2.periods())
+        for period in mp.periods():
+            assert(period in mp2.periods())
         
         E1 = mp.edges.to_pandas()
         E2 = mp2.edges.to_pandas()

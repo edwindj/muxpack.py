@@ -1,6 +1,4 @@
 
-import pytest
-import duckdb
 import ibis
 from muxpack import MultiplexSeries, Multiplex
 
