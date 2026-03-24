@@ -4,6 +4,7 @@ import pytest
 from collections.abc import Generator
 from copy import copy
 
+
 @pytest.fixture()
 def simple() -> Generator[MultiplexSeries]:
     edges = ibis.memtable(
@@ -18,6 +19,7 @@ def simple() -> Generator[MultiplexSeries]:
     vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
     m = MultiplexSeries(edges, vertices)
     yield m
+
 
 def test_add_filter(simple):
     m = copy(simple)
@@ -38,11 +40,12 @@ def test_add_filter(simple):
     assert len(m3.layers()) == 1
     assert m3.layers() == ["B"]
 
+
 def test_add_filter_src_dst(simple):
     m = copy(simple)
     m.add_filter(src=[1])
-    assert(len(m.periods()) == 2)
+    assert len(m.periods()) == 2
 
     E = m.edges.to_pandas()
-    assert(len(E) == 2)
+    assert len(E) == 2
     # assert(E[["src"]] == [1,1])
