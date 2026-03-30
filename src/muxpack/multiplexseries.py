@@ -207,6 +207,13 @@ class MultiplexSeries:
         else:
             V = None
         return Multiplex(edges=E, vertices=V, period=None)
+    
+    def collapse_to(self, dir: Path |  str):
+        """
+        Collapses a multiplex to disk
+        """
+        m = self.collapse()
+        return m.save(dir = dir)
 
     def save(self, dir: Path | str, **kw_args):
         """
@@ -215,6 +222,9 @@ class MultiplexSeries:
         will overwrite existing files in the directory.
         Saving might also improve performance, because it will
         evaluate the `edges` and `vertices` expressions of this MultiplexSeries
+
+        Args: 
+            - dir: path to the directory where the MultiplexSeries will be saved.
         """
         edges = self.edges
         vertices = self.vertices

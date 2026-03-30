@@ -82,14 +82,15 @@ class Multiplex:
         Save a multiplex to disk, using the specification.
         Note that saving does create the directory if it does not exist, and it
         will overwrite existing files in the directory.
+        It will also evaluate the `edges` and `vertices` expressions and update 
+        the `edges` and `vertices` expression to the new directories.
         """
         edges = self.edges
         vertices = self.vertices
         if vertices is None:
-            mp = Multiplex(edges = self.edges)
-            mp.update_vertices()
-            vertices = mp.vertices
-        period = self.period if self.period is not None else 0
-        edges = edges.with_column("period", ibis.literal(period))
-        vertices = vertices.with_column("period", ibis.literal(period))
-        io.save_network(edges, vertices, dir = dir, **kw_args)
+            self.update_vertices()
+            vertices = self.vertices
+        period = self.period 
+        edges, vertices = io.save_multiplex(edges, vertices, period, dir = dir, **kw_args)
+        self.edges = edges
+        self.vertices = vertices

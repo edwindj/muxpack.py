@@ -67,7 +67,8 @@ def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
         sparse matrix as `csr_matrix` object
     """
     # vertices may contain multiple periods
-    vertices = vertices[["id"]].distinct()
+    if vertices is not None:
+        vertices = vertices[["id"]].distinct()
     edges_row_col = to_row_col_idx(edges, vertices=vertices)
     M = idx_to_csr_matrix(edges_row_col, vertices=vertices)
     return M
