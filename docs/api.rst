@@ -22,10 +22,10 @@ Multiplex
    :special-members: __init__
 
 
-BiPartite
+Bipartite
 ---------
 
-.. autoclass:: muxpack.bipartite.BiPartite
+.. autoclass:: muxpack.bipartite.Bipartite
    :members:
    :special-members: __init__
 
