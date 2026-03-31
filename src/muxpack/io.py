@@ -1,6 +1,6 @@
 import ibis
 
-from muxpack.bipartite import BiPartite
+from muxpack.bipartite import Bipartite
 from .multiplexseries import MultiplexSeries
 from pathlib import Path
 import os
@@ -240,7 +240,7 @@ def save_bipartite(
         json.dump(json_content, f)
 
 
-def read_bipartite(dir: Path | str) -> BiPartite:
+def read_bipartite(dir: Path | str) -> Bipartite:
     """
     Load a bipartite graph from disk.
 

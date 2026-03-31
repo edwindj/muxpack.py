@@ -3,7 +3,7 @@ from ibis import Table
 from . import io
 
 
-class BiPartite:
+class Bipartite:
     """
     Lazy Bipartite storage
     - sort on role_src, role_dst
@@ -30,6 +30,7 @@ class BiPartite:
             - role_dst: column name for the destination role.
             - relationtype: column name for the relation type.
         """
+        self.edges = edges
         self.role_src = role_src
         self.role_dst = role_dst
         self.relationtype = relationtype
@@ -52,7 +53,7 @@ class BiPartite:
 
         E = E_src.inner_join(E_dst, E_src.p == E_dst.p)
         E = E.filter(E.src != E.dst)
-        E = E.drop("p")
+        E = E.select(["src", "dst", "relationtype"])
         return E
 
     def project_to_dst(self) -> Table:
@@ -74,7 +75,7 @@ class BiPartite:
 
         E = E_src.inner_join(E_dst, E_src.p == E_dst.p)
         E = E.filter(E.src != E.dst)
-        E = E.drop("p")
+        E = E.select(["src", "dst", "relationtype"])
         return E
 
     def save(self, dir: Path | str) -> None:
