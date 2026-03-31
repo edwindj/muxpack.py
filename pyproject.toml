@@ -7,7 +7,7 @@ authors = [
     { name = "Edwin de Jonge", email = "edwindjonge@gmail.com" },
     { name = "Jan van der Laan", email = "djvanderlaan@gmail.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
     "duckdb>=1.4.4",
     "ibis-framework[duckdb]>=12.0.0",
