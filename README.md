@@ -2,6 +2,8 @@
 
 ## Muxpack
 
+[![Python package](https://github.com/edwindj/muxpack.py/actions/workflows/python.yml/badge.svg)](https://github.com/edwindj/muxpack.py/actions/workflows/python.yml)
+
 Muxpack is a Python implementation for working with multiplex network files.
 
 ## Documentation
