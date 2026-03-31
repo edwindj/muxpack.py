@@ -10,9 +10,12 @@ def check_edges(edges: Table, check_period=True) -> bool:
     """
     Check that the edges table has the required columns and types.
 
-    :param edges: The edges table to check.
-    :param check_period: Whether to check the "period" column.
-    :return: True if the edges table is valid, False otherwise.
+    Args:
+        - edges: the edges table to check.
+        - check_period: whether to require a ``period`` column.
+
+    Returns:
+        - ``True`` if the edges table is valid, ``False`` otherwise.
     """
 
     # the column types can be int32 or int64, but they must be integers, and the layer column must be a string
@@ -37,9 +40,12 @@ def check_vertices(vertices: Table, check_period=True) -> bool:
     """
     Check that the vertices table has the required columns and types.
 
-    :param vertices: The vertices table to check.
-    :param check_period: Whether to check the "period" column.
-    :return: True if the vertices table is valid, False otherwise.
+    Args:
+        - vertices: the vertices table to check.
+        - check_period: whether to require a ``period`` column.
+
+    Returns:
+        - ``True`` if the vertices table is valid, ``False`` otherwise.
     """
     required_columns = {"id", "period"} if check_period else {"id"}
 
@@ -60,11 +66,15 @@ def check_vertices(vertices: Table, check_period=True) -> bool:
 
 def check_column_type(t: Table, expected_types: dict[str, str]) -> bool:
     """
-    Check that the columns in the table have the expected types.
+    Check that the columns in a table have the expected types.
 
-    :param t: The table to check.
-    :param expected_types: A dictionary mapping column names to expected types.
-    :return: True if all columns have the expected types, False otherwise.
+    Args:
+        - t: the table to check.
+        - expected_types: dictionary mapping column names to expected type strings
+          (e.g., ``"integer"``, ``"string"``).
+
+    Returns:
+        - ``True`` if all specified columns exist and have the expected types, ``False`` otherwise.
     """
     for column, expected_type in expected_types.items():
         col = t[column]

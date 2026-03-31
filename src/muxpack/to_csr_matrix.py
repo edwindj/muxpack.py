@@ -12,17 +12,17 @@ logger = logging.getLogger(__name__)
 
 def to_row_col_idx(edges: Table, vertices: Table) -> Table:
     """
-    Turn the edge list into a row col index table, based on the
-    vertices table that is given.
+    Turn an edge list into a row/column index table based on the given vertices table.
 
     Args:
-        edges : needs `src` and `dst` field
-        vertices : needs an `id` field, edges will be filtered on id.
+        - edges: table with ``src`` and ``dst`` columns.
+        - vertices: table with an ``id`` column; edges not referencing a vertex in this
+          table are filtered out.
 
     Returns:
-        lazy edges table that only contains edges with id in vertices.
-        the row and column refer to the row number of the vertices Table.
-        The result can be used by `to_csr_matrix`
+        - Table with columns ``data``, ``row``, and ``col`` containing the boolean edge
+          indicator and the row/column indices corresponding to vertex positions in
+          ``vertices``. Can be passed directly to ``idx_to_csr_matrix``.
     """
     v = vertices.select("id").mutate(idx=row_number())
     row = v.select(src="id", row="idx")
@@ -44,6 +44,17 @@ def to_row_col_idx(edges: Table, vertices: Table) -> Table:
 
 
 def idx_to_csr_matrix(idx: Table, vertices: Table) -> csr_matrix:
+    """
+    Convert a row-column index table to a CSR sparse matrix.
+
+    Args:
+        - idx: table with columns ``data``, ``row``, and ``col``, as produced by
+          ``to_row_col_idx``.
+        - vertices: table with an ``id`` column; its row count determines the matrix size.
+
+    Returns:
+        - Square CSR sparse matrix of shape ``(n_vertices, n_vertices)``.
+    """
     # TODO maybe to_parquet()?
     coo = idx.execute()
     logger.debug(f"COO matrix data: {coo}")
@@ -56,15 +67,15 @@ def idx_to_csr_matrix(idx: Table, vertices: Table) -> csr_matrix:
 
 def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
     """
-    Transform an edge list into a sparse matrix (csr_matrix)
+    Transform an edge list into a sparse matrix (csr_matrix).
 
-    Parameters:
-        edges: `src`, `dst` fields
-        vertices: Table representing nodes/vertices, needs `id` field. `edges` will
-        be filtered on whether they exist in vertices
+    Args:
+        - edges: table with ``src`` and ``dst`` columns.
+        - vertices: table with an ``id`` column; edges are filtered to vertices present
+          in this table. Pass ``None`` to derive vertices from the edges table.
 
     Returns:
-        sparse matrix as `csr_matrix` object
+        - Square CSR sparse matrix of shape ``(n_vertices, n_vertices)``.
     """
     # vertices may contain multiple periods
     if vertices is not None:
@@ -78,11 +89,17 @@ def to_period_csr_matrix(
     edges: Table, vertices: Table | None, periods: list[int] = []
 ) -> Generator[Tuple[csr_matrix, int]]:
     """
-    Generates a sparse matrix for all periods given
+    Generate a sparse matrix for each period.
 
-    Parameters:
-        edges: Table with the edges/links needs `src`, `dst`, `period`
-        vertices: Optional Table with vertex information, needs a `id` and `period`
+    Args:
+        - edges: table with columns ``src``, ``dst``, and ``period``.
+        - vertices: table with columns ``id`` and ``period``, or ``None`` to derive
+          vertices from the edges table for each period.
+        - periods: list of periods to generate matrices for. If empty, all periods
+          present in ``edges`` are used.
+
+    Returns:
+        - Generator of ``(csr_matrix, period)`` tuples, one per period.
     """
     if len(periods) == 0:
         periods = edges[["period"]].distinct().to_pandas().period.tolist()

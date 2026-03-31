@@ -34,11 +34,17 @@ class MultiplexSeries:
     ) -> None:
         """
         Initialize a multiplex series with the given edges and vertices tables.
-        The edges table must have columns "src", "dst", "period", "layer" and
-        "relationtype". The vertices table must have a column "id" and optional
-        additional columns, and must have a column "period" if the edges table has
-        a column "period". The relationtypes table must have a column
-        "relationtype", "layer", "label" and optional additional columns.
+
+        Args:
+            - edges: table with columns ``src``, ``dst``, ``period``, ``layer``, and ``relationtype``.
+            - vertices: table with column ``id``, ``period``, and optional additional columns.
+              Must have a ``period`` column because the edges table has one.
+            - relationtypes: table with columns ``relationtype``, ``layer``, ``label``,
+              and optional additional columns.
+
+        Raises:
+            - ValueError: if the edges table does not satisfy the required schema.
+            - ValueError: if the vertices table does not satisfy the required schema.
         """
         if not check_edges(edges):
             raise ValueError("Invalid edges table")
@@ -57,7 +63,10 @@ class MultiplexSeries:
 
     def periods(self) -> list[int]:
         """
-        Get the list of periods in the multiplex.
+        Get the list of periods present in the multiplex series.
+
+        Returns:
+            - Sorted list of period values.
         """
         periods = (
             self.edges.select(self.edges.period)
@@ -72,7 +81,10 @@ class MultiplexSeries:
 
     def layers(self) -> list[str]:
         """
-        Get the list of layers in the multiplex.
+        Get the list of layers present in the multiplex series.
+
+        Returns:
+            - Sorted list of layer names.
         """
         layers = (
             self.edges.select(self.edges.layer)
@@ -86,8 +98,9 @@ class MultiplexSeries:
 
     def update_vertices(self) -> None:
         """
-        Update the vertices table based on the edges table. This is useful if
-        the vertices table was not provided at initialization.
+        Update the vertices table by deriving it from the edges table.
+        This is useful when the vertices table was not provided at initialization.
+        Both ``self.vertices`` and ``self.vertex_ids`` are updated in place.
         """
         src = self.edges.select(id="src", period="period").distinct()
         dst = self.edges.select(id="dst", period="period").distinct()
@@ -99,8 +112,10 @@ class MultiplexSeries:
 
     def update_relationtypes(self) -> None:
         """
-        Update the relationtypes table based on the edges table. This is useful
-        if the relationtypes table was not provided at initialization.
+        Update the relationtypes table by deriving it from the edges table.
+        This is useful when the relationtypes table was not provided at initialization.
+        A ``label`` column is constructed as ``"<layer>_<relationtype>"``.
+        ``self.relationtypes`` is updated in place.
         """
         relationtypes = (
             self.edges.select(self.edges.relationtype, self.edges.layer)
@@ -120,7 +135,13 @@ class MultiplexSeries:
 
     def get_multiplex(self, period: int) -> Multiplex:
         """
-        Get a multiplex for a specific period.
+        Return the multiplex for a specific period.
+
+        Args:
+            - period: the period to retrieve.
+
+        Returns:
+            - Multiplex object containing only the edges and vertices for the given period.
         """
         E_y = self.edges.filter(self.edges.period == period)
         if self.vertices is not None:
@@ -131,7 +152,10 @@ class MultiplexSeries:
 
     def multiplexes(self) -> list[Tuple[int, Multiplex]]:
         """
-        Get a list of multiplexes for all periods in the multiplex series.
+        Return all multiplexes in the series, one per period.
+
+        Returns:
+            - List of ``(period, Multiplex)`` tuples, ordered by period.
         """
         periods = self.periods()
         return [(period, self.get_multiplex(period)) for period in periods]
@@ -143,25 +167,22 @@ class MultiplexSeries:
         relationtypes: list[int] = None,
         src: list[int] = None,
         dst: list[int] = None,
-    ):
+    ) -> None:
         """
-        Apply a filter to the multiplex network. 
-        Note that an empty list means no filtering and that filtering
-        is lazy, the filter will only be executed when saving or converting
-        to another format.
+        Apply a filter to the multiplex series in place.
+        Filtering is lazy: the filter is only executed when saving or converting
+        to another format. Passing ``None`` or an empty list for any argument
+        means no filtering is applied for that dimension.
 
-        Advanced filtering can be accomplished by modifying the `edges`
-        property directly using `ibis` expressions.
+        For advanced filtering, modify the ``edges`` property directly using
+        ibis expressions.
 
         Args:
-            - periods: list of periods to filter on
-            - layers: list of layers to filter on
-            - relationtype: list of relationtypes to filter on
-            - src: list of vertex ids (ego)
-            - dst: list of vertex ids (non-ego)
-
-        Return:
-            - MultiplexSeries object
+            - periods: list of periods to keep.
+            - layers: list of layer names to keep.
+            - relationtypes: list of relationtype values to keep.
+            - src: list of source vertex ids (ego) to keep.
+            - dst: list of destination vertex ids (non-ego) to keep.
         """
         E = self.edges
 
@@ -192,14 +213,23 @@ class MultiplexSeries:
 
         self.edges = E
 
-    def __copy__(self):
+    def __copy__(self) -> "MultiplexSeries":
+        """
+        Return a shallow copy of this MultiplexSeries.
+
+        Returns:
+            - A new MultiplexSeries sharing the same ``edges`` and ``vertices`` tables.
+        """
         return MultiplexSeries(self.edges, self.vertices)
 
     def collapse(self) -> Multiplex:
         """
-        Collapse the multiplex series into a single multiplex, by ignoring the
-        period information. This is useful for analyses that do not require
-        temporal information
+        Collapse the multiplex series into a single Multiplex by discarding period
+        information. Duplicate edges across periods are removed. This is useful
+        for analyses that do not require temporal information.
+
+        Returns:
+            - Multiplex containing all distinct edges across all periods, with ``period=None``.
         """
         E = self.edges.select(["src", "dst", "layer", "relationtype"]).distinct()
         if self.vertices is not None:
@@ -208,23 +238,29 @@ class MultiplexSeries:
             V = None
         return Multiplex(edges=E, vertices=V, period=None)
     
-    def collapse_to(self, dir: Path |  str):
+    def collapse_to(self, dir: Path | str) -> None:
         """
-        Collapses a multiplex to disk
+        Collapse the multiplex series and save the result to disk.
+        This is a convenience method equivalent to calling ``collapse()`` followed
+        by ``Multiplex.save()``.
+
+        Args:
+            - dir: path to the directory where the collapsed Multiplex will be saved.
         """
         m = self.collapse()
         return m.save(dir = dir)
 
-    def save(self, dir: Path | str, **kw_args):
+    def save(self, dir: Path | str, **kw_args) -> None:
         """
-        Save a multiplex to disk, using the specification.
-        Note that saving does create the directory if it does not exist, and it
-        will overwrite existing files in the directory.
-        Saving might also improve performance, because it will
-        evaluate the `edges` and `vertices` expressions of this MultiplexSeries
+        Save the multiplex series to disk.
+        The directory is created if it does not exist; existing files are overwritten.
+        Saving also evaluates the lazy ``edges`` and ``vertices`` expressions and
+        updates them to point at the saved files, which can improve subsequent
+        performance.
 
-        Args: 
+        Args:
             - dir: path to the directory where the MultiplexSeries will be saved.
+            - **kw_args: additional keyword arguments forwarded to ``io.save_network``.
         """
         edges = self.edges
         vertices = self.vertices
