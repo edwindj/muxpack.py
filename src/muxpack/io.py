@@ -9,6 +9,7 @@ from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
+
 def load_network(dir: Path) -> MultiplexSeries:
     """
     Load a multiplex network from a directory containing Parquet files.
@@ -49,6 +50,7 @@ def load_network(dir: Path) -> MultiplexSeries:
 
     m = MultiplexSeries(edges=edges, vertices=vertices, relationtypes=relationtypes)
     return m
+
 
 def save_network(
     edges: ibis.Table,
@@ -113,11 +115,12 @@ def save_network(
             logger.info(f"\t\tSaved layer {layer}")
         logger.info(f"\tFinished saving period {period}")
     logger.info(f"Finished saving network to {dir}.")
-    
+
     con = ibis.duckdb.connect()
     edges = con.read_parquet(f"{dir}/*/edges/**/*.parquet", table_name="edges")
     vertices = con.read_parquet(f"{dir}/*/vertices.parquet", table_name="vertices")
-    return edges,vertices
+    return edges, vertices
+
 
 def save_multiplex(
     edges: ibis.Table,
@@ -159,7 +162,7 @@ def save_multiplex(
     # writing vertices
     vertices_file = dir / "vertices.parquet"
     if period is not None:
-        # test if period column is there, if not add it to 
+        # test if period column is there, if not add it to
         V = V.filter(V.period == period)
     V.to_parquet(vertices_file)
 
@@ -182,13 +185,16 @@ def save_multiplex(
         )
         logger.info(f"\t\tSaved layer {layer}")
     logger.info("\tFinished saving")
-    
+
     con = ibis.duckdb.connect()
     edges = con.read_parquet(f"{dir}/edges/**/*.parquet", table_name="edges")
     vertices = con.read_parquet(f"{dir}/vertices.parquet", table_name="vertices")
-    return edges,vertices
+    return edges, vertices
 
-def save_multiplexseries(edges: ibis.Table, vertices: ibis.Table, dir: Path | str) -> None:
+
+def save_multiplexseries(
+    edges: ibis.Table, vertices: ibis.Table, dir: Path | str
+) -> None:
     """
     Save a multiplex series to disk by writing each period as a separate sub-directory.
 
@@ -198,15 +204,18 @@ def save_multiplexseries(edges: ibis.Table, vertices: ibis.Table, dir: Path | st
         - dir: root path where the multiplex series will be saved.
     """
     dir = Path(dir)
-    periods = (edges.select("period").distinct().to_pyarrow().column("period").to_pylist())
+    periods = (
+        edges.select("period").distinct().to_pyarrow().column("period").to_pylist()
+    )
     for period in periods:
         E = edges.filter(edges.period == period)
         V = vertices.filter(vertices.period == period)
-        save_multiplex(edges=E, vertices=V, dir = dir / period)
+        save_multiplex(edges=E, vertices=V, dir=dir / period)
 
-def save_bipartite(edges: ibis.Table, 
-                   role_src: str, role_dst: str, relationtype:str, 
-                   dir: Path | str) -> None:
+
+def save_bipartite(
+    edges: ibis.Table, role_src: str, role_dst: str, relationtype: str, dir: Path | str
+) -> None:
     """
     Save a bipartite graph to disk as a Parquet file plus a JSON metadata file.
 
@@ -223,11 +232,13 @@ def save_bipartite(edges: ibis.Table,
     json_content = {
         "role_src": role_src,
         "role_dst": role_dst,
-        "relationtype": relationtype
+        "relationtype": relationtype,
     }
     with open(dir / "metadata.json", "w") as f:
         import json
+
         json.dump(json_content, f)
+
 
 def read_bipartite(dir: Path | str) -> BiPartite:
     """
@@ -243,11 +254,15 @@ def read_bipartite(dir: Path | str) -> BiPartite:
     edges = ibis.read_parquet(dir / "edges.parquet")
     with open(dir / "metadata.json", "r") as f:
         import json
+
         metadata = json.load(f)
     role_src = metadata["role_src"]
     role_dst = metadata["role_dst"]
     relationtype = metadata["relationtype"]
-    return BiPartite(edges=edges, role_src=role_src, role_dst=role_dst, relationtype=relationtype)
+    return BiPartite(
+        edges=edges, role_src=role_src, role_dst=role_dst, relationtype=relationtype
+    )
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

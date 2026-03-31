@@ -5,12 +5,14 @@ from pathlib import Path
 from . import io
 import logging
 from scipy.sparse import csr_matrix
+import networkx as nx
 
 logger = logging.getLogger(__name__)
 
+
 class Multiplex:
     """
-    A multiplex is a graph with multiple layers. 
+    A multiplex is a graph with multiple layers.
     Each layer represents a different type of relationship between the same set of vertices, during one period.
     For example, in a social network, one layer could represent friendships, while
     another layer could represent professional connections.
@@ -25,7 +27,9 @@ class Multiplex:
 
     period: int | None
 
-    def __init__(self, edges: ibis.Table, vertices: ibis.Table = None, period: int | None = None) -> None:
+    def __init__(
+        self, edges: ibis.Table, vertices: ibis.Table = None, period: int | None = None
+    ) -> None:
         """
         Initialize a multiplex with the given edges and vertices tables.
 
@@ -40,15 +44,15 @@ class Multiplex:
         """
         if not check_edges(edges, check_period=False):
             raise ValueError("Invalid edges table")
-        
+
         if vertices is not None and not check_vertices(vertices, check_period=False):
             raise ValueError("Invalid vertices table")
 
-        self.period = period 
+        self.period = period
         self.edges = edges
-        #TODO derive vertices from edges if not provided
+        # TODO derive vertices from edges if not provided
         self.vertices = vertices
-    
+
     def layers(self) -> list[str]:
         """
         Get the list of layers present in the multiplex.
@@ -58,7 +62,7 @@ class Multiplex:
         """
         layers = self.edges[["layer"]].distinct().to_pandas().layer.tolist()
         return layers
-    
+
     def update_vertices(self) -> None:
         """
         Update the vertices table by deriving it from the edges table.
@@ -80,10 +84,11 @@ class Multiplex:
             - Sparse boolean matrix of shape ``(n_vertices, n_vertices)``.
         """
         from .to_csr_matrix import to_row_col_idx, idx_to_csr_matrix
+
         idx = to_row_col_idx(self.edges, self.vertices)
         M = idx_to_csr_matrix(idx, self.vertices)
         return M
-    
+
     def to_csr_matrices(self) -> dict[str, csr_matrix]:
         """
         Transform the multiplex into a dictionary of sparse matrices, one per layer.
@@ -92,13 +97,27 @@ class Multiplex:
             - Dictionary mapping layer name to a sparse boolean matrix of shape ``(n_vertices, n_vertices)``.
         """
         from .to_csr_matrix import to_row_col_idx, idx_to_csr_matrix
+
         layers = self.layers()
         matrices = {}
         for layer in layers:
-            idx = to_row_col_idx(self.edges.filter(self.edges.layer == layer), self.vertices)
+            idx = to_row_col_idx(
+                self.edges.filter(self.edges.layer == layer), self.vertices
+            )
             M = idx_to_csr_matrix(idx, self.vertices)
             matrices[layer] = M
         return matrices
+
+    def to_networkx(self) -> nx.MultiDiGraph:
+        """
+        Convert the multiplex to a NetworkX MultiDiGraph.
+
+        Returns:
+            - NetworkX MultiDiGraph built from the CSR matrix representation of the edges.
+        """
+        from .networkx import to_MultiDiGraph
+
+        return to_MultiDiGraph(self.edges, self.vertices)
 
     def save(self, dir: Path | str, **kw_args) -> None:
         """
@@ -116,7 +135,7 @@ class Multiplex:
         if vertices is None:
             self.update_vertices()
             vertices = self.vertices
-        period = self.period 
-        edges, vertices = io.save_multiplex(edges, vertices, period, dir = dir, **kw_args)
+        period = self.period
+        edges, vertices = io.save_multiplex(edges, vertices, period, dir=dir, **kw_args)
         self.edges = edges
         self.vertices = vertices

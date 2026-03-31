@@ -237,7 +237,7 @@ class MultiplexSeries:
         else:
             V = None
         return Multiplex(edges=E, vertices=V, period=None)
-    
+
     def collapse_to(self, dir: Path | str) -> None:
         """
         Collapse the multiplex series and save the result to disk.
@@ -248,7 +248,7 @@ class MultiplexSeries:
             - dir: path to the directory where the collapsed Multiplex will be saved.
         """
         m = self.collapse()
-        return m.save(dir = dir)
+        return m.save(dir=dir)
 
     def save(self, dir: Path | str, **kw_args) -> None:
         """
