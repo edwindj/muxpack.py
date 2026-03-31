@@ -204,8 +204,13 @@ def save_multiplexseries(
         - dir: root path where the multiplex series will be saved.
     """
     dir = Path(dir)
-    periods = (
-        edges.select("period").distinct().to_pyarrow().column("period").to_pylist()
+    periods: list[str] = (
+        edges
+        .select("period")
+        .distinct()
+        .order_by("period")
+        .period
+        .to_list()
     )
     for period in periods:
         E = edges.filter(edges.period == period)
@@ -236,7 +241,6 @@ def save_bipartite(
     }
     with open(dir / "metadata.json", "w") as f:
         import json
-
         json.dump(json_content, f)
 
 
@@ -254,12 +258,11 @@ def read_bipartite(dir: Path | str) -> Bipartite:
     edges = ibis.read_parquet(dir / "edges.parquet")
     with open(dir / "metadata.json", "r") as f:
         import json
-
         metadata = json.load(f)
     role_src = metadata["role_src"]
     role_dst = metadata["role_dst"]
     relationtype = metadata["relationtype"]
-    return BiPartite(
+    return Bipartite(
         edges=edges, role_src=role_src, role_dst=role_dst, relationtype=relationtype
     )
 

@@ -69,12 +69,11 @@ class MultiplexSeries:
             - Sorted list of period values.
         """
         periods = (
-            self.edges.select(self.edges.period)
+            self.edges.select("period")
             .distinct()
             .order_by("period")
-            .to_pyarrow()
-            .column("period")
-            .to_pylist()
+            .period
+            .to_list()
         )
         # periods = self.edges[["period"]].distinct().to_pandas().period.tolist()
         return periods
@@ -87,12 +86,11 @@ class MultiplexSeries:
             - Sorted list of layer names.
         """
         layers = (
-            self.edges.select(self.edges.layer)
+            self.edges.select("layer")
             .distinct()
             .order_by("layer")
-            .to_pyarrow()
-            .column("layer")
-            .to_pylist()
+            .layer
+            .to_list()
         )
         return layers
 
