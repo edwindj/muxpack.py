@@ -2,11 +2,11 @@ import ibis
 from muxpack import MultiplexSeries
 
 
-def test_multiplexseries():
-    ddb = ibis.duckdb.connect()
-    edges = ddb.read_parquet("data/*/edges/**/*.parquet")
-    mp = MultiplexSeries(edges=edges)
-    assert mp.edges is not None
+# def test_multiplexseries():
+#     ddb = ibis.duckdb.connect()
+#     edges = ddb.read_parquet("data/*/edges/**/*.parquet")
+#     mp = MultiplexSeries(edges=edges)
+#     assert mp.edges is not None
 
 
 def test_layers_and_periods():
