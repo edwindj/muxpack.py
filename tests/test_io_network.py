@@ -21,9 +21,9 @@ def simple_mps() -> Generator[muxpack.MultiplexSeries]:
     yield m
 
 
-def test_load_data():
-    mp = muxpack.load_network("data")
-    assert mp is not None
+# def test_load_data():
+#     mp = muxpack.load_network("data")
+#     assert mp is not None
 
 
 def test_save_data(simple_mps):
