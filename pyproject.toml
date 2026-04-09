@@ -1,6 +1,6 @@
 [project]
 name = "muxpack"
-version = "0.1.0"
+version = "0.2.0dev1"
 description = "Tools to handle multiplex network data more easily"
 readme = "README.md"
 authors = [
