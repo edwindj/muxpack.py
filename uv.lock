@@ -270,7 +270,7 @@ wheels = [
 
 [[package]]
 name = "muxpack"
-version = "0.2.0"
+version = "0.2.0.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "ibis-framework", extra = ["duckdb"] },
