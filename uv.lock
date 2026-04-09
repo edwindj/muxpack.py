@@ -273,12 +273,8 @@ name = "muxpack"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "duckdb" },
     { name = "ibis-framework", extra = ["duckdb"] },
     { name = "networkx" },
-    { name = "pandas" },
-    { name = "pyarrow" },
-    { name = "pyarrow-hotfix" },
     { name = "scipy" },
 ]
 
@@ -294,12 +290,8 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "duckdb", specifier = ">=1.4.4" },
     { name = "ibis-framework", extras = ["duckdb"], specifier = ">=12.0.0" },
     { name = "networkx", specifier = ">=3.6.1" },
-    { name = "pandas", specifier = ">=3.0.1" },
-    { name = "pyarrow", specifier = ">=23.0.1" },
-    { name = "pyarrow-hotfix", specifier = ">=0.7" },
     { name = "scipy", specifier = ">=1.17.1" },
 ]
 
