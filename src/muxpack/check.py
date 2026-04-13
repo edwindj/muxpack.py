@@ -30,9 +30,13 @@ def check_edges(edges: Table, check_period=True) -> bool:
     if not check_period:
         expect_types.pop("period", None)
 
-    if check_column_type(edges, expect_types):
-        return True
+    opt_types = {
+        "weight": "numeric"
+    }
 
+    if check_column_type(edges, expect_types, optional=False):
+        if (check_column_type(edges, opt_types, optional=True)):
+            return True
     return False
 
 
@@ -58,13 +62,13 @@ def check_vertices(vertices: Table, check_period=True) -> bool:
     if check_period:
         expect_types["period"] = "integer"
 
-    if not check_column_type(vertices, expect_types):
+    if not check_column_type(vertices, expect_types, optional=False):
         return False
 
     return True
 
 
-def check_column_type(t: Table, expected_types: dict[str, str]) -> bool:
+def check_column_type(t: Table, expected_types: dict[str, str], optional: bool = False) -> bool:
     """
     Check that the columns in a table have the expected types.
 
@@ -72,15 +76,21 @@ def check_column_type(t: Table, expected_types: dict[str, str]) -> bool:
         - t: the table to check.
         - expected_types: dictionary mapping column names to expected type strings
           (e.g., ``"integer"``, ``"string"``).
+        - optional: accept that the column does not exist.
 
     Returns:
         - ``True`` if all specified columns exist and have the expected types, ``False`` otherwise.
     """
     for column, expected_type in expected_types.items():
+        if column not in t.columns:
+            if optional is True:
+                logger.info(f"Optional column '{column}' is missing.")
+                continue
+            else:
+                logger.warning(f"Column '{column}' is missing.")
+                return False
+            
         col = t[column]
-        if col is None:
-            logger.warning(f"Column '{column}' is missing.")
-            return False
         coltype = col.type()
         if expected_type == "integer" and coltype.is_integer():
             continue
