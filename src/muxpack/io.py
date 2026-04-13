@@ -10,7 +10,7 @@ from typing import Tuple
 logger = logging.getLogger(__name__)
 
 
-def load_network(dir: Path) -> MultiplexSeries:
+def read_multiplexseries(dir: Path) -> MultiplexSeries:
     """
     Load a multiplex network from a directory containing Parquet files.
 
@@ -269,6 +269,6 @@ def read_bipartite(dir: Path | str) -> Bipartite:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    m = load_network("data")
+    m = read_multiplexseries("data")
 
     save_network(edges=m.edges, vertices=m.vertices, dir="data2")
