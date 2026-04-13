@@ -161,8 +161,7 @@ class MultiplexSeries:
     def add_filter(
         self,
         periods: list[int] = None,
-        layers: list[str] = None,
-        relationtypes: list[int] = None,
+        layers: dict[str, list[int] | None] = None,
         src: list[int] = None,
         dst: list[int] = None,
     ) -> None:
@@ -177,8 +176,7 @@ class MultiplexSeries:
 
         Args:
             - periods: list of periods to keep.
-            - layers: list of layer names to keep.
-            - relationtypes: list of relationtype values to keep.
+            - layers: dict of {layer:[relationtype]} to keep.
             - src: list of source vertex ids (ego) to keep.
             - dst: list of destination vertex ids (non-ego) to keep.
         """
@@ -190,10 +188,18 @@ class MultiplexSeries:
             flt.append(E.period.isin(periods))
 
         if layers is not None and len(layers) > 0:
-            flt.append(E.layer.isin(layers))
+            rt = []
 
-        if relationtypes is not None and len(relationtypes) > 0:
-            flt.append(E.relationtype.isin(relationtypes))
+            for layer, relationtypes in layers.items():
+                e = E.layer == layer
+                if not relationtypes is None:
+                    e = ibis.and_(e, E.relationtype.isin(relationtypes))
+                rt.append(e)
+
+            if len(rt) > 1:
+                flt.append(ibis.or_(rt))
+            elif len(rt) == 1:
+                flt.append(e)
 
         if src is not None and len(src) > 0:
             vid = ibis.memtable({"id": src})
