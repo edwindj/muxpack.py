@@ -19,7 +19,7 @@ class Multiplex:
     For multiple periods, use MultiplexSeries.
     """
 
-    #: The edges of the multiplex. This is a table with columns "src", "dst", "layer" and "relationtype".
+    #: The edges of the multiplex. This is a table with columns "src", "dst", "layer","relationtype" and optionally weight.
     edges: ibis.Table
 
     #: The vertices of the multiplex. This is a table with a column "id" and optional additional columns.
@@ -60,7 +60,7 @@ class Multiplex:
         Returns:
             - List of layer names.
         """
-        layers = self.edges[["layer"]].distinct().to_pandas().layer.tolist()
+        layers = self.edges[["layer"]].distinct().layer.to_list()
         return layers
 
     def update_vertices(self) -> None:
@@ -75,7 +75,7 @@ class Multiplex:
         V = src.union(dst, distinct=True).to_pyarrow()
         self.vertices = ibis.memtable(V)
 
-    def to_csr_matrix(self) -> csr_matrix[bool]:
+    def to_csr_matrix(self, weight: ibis.Expression) -> csr_matrix[bool]:
         """
         Transform the multiplex into a sparse matrix, collapsing all layers into one.
         To keep layers separate, use ``to_csr_matrices`` instead.

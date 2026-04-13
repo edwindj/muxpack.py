@@ -85,7 +85,7 @@ def save_network(
     # duckdb, however, that would pose some problems:
     # - Hive naming convention does not follow the muxpack specification
     # - Hive partitioning removes columns that are partitioned.
-    periods = E[["period"]].distinct().to_pandas().period
+    periods = E[["period"]].distinct().period.to_list()
 
     for period in periods:
         period_dir = dir / f"{period}"
@@ -100,7 +100,7 @@ def save_network(
         edges_dir = period_dir / "edges"
         os.makedirs(edges_dir, exist_ok=True)
         E_period = E.filter(E.period == period)
-        layers = E_period[["layer"]].distinct().to_pandas().layer
+        layers = E_period[["layer"]].distinct().layer.to_list()
         logger.info(f"layers: {layers}")
         for layer in layers:
             layer_dir = edges_dir / f"{layer}"
@@ -171,7 +171,7 @@ def save_multiplex(
 
     os.makedirs(edges_dir, exist_ok=True)
     E_period = E.filter(E.period == period)
-    layers = E_period[["layer"]].distinct().to_pandas().layer
+    layers = E_period[["layer"]].distinct().layer.to_list()
     logger.info(f"layers: {layers}")
     for layer in layers:
         layer_dir = edges_dir / f"{layer}"

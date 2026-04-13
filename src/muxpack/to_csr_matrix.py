@@ -102,7 +102,7 @@ def to_period_csr_matrix(
         - Generator of ``(csr_matrix, period)`` tuples, one per period.
     """
     if len(periods) == 0:
-        periods = edges[["period"]].distinct().to_pandas().period.tolist()
+        periods = edges[["period"]].distinct().period.to_list()
     for period in periods:
         E_y = edges.filter(edges.period == period)
         if vertices is not None:

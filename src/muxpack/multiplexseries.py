@@ -9,7 +9,6 @@ from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
-
 class MultiplexSeries:
     """
     A multiplexseries is a series of Multiplex graphs with multiple layers, spanning multiple periods.
@@ -75,7 +74,7 @@ class MultiplexSeries:
             .period
             .to_list()
         )
-        # periods = self.edges[["period"]].distinct().to_pandas().period.tolist()
+        # periods = self.edges[["period"]].distinct().to_pandas().period.to_list()
         return periods
 
     def layers(self) -> list[str]:
