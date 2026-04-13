@@ -52,74 +52,74 @@ def read_multiplexseries(dir: Path) -> MultiplexSeries:
     return m
 
 
-def save_network(
-    edges: ibis.Table,
-    vertices: ibis.Table,
-    dir: Path | str,
-    existing_data_behavior="delete_matching",
-    **kwargs,
-) -> Tuple[ibis.Table, ibis.Table]:
-    """
-    Save edges and vertices to disk following the muxpack directory structure.
-    The directory and all sub-directories are created if they do not exist.
-    Edges and vertices are not validated for consistency.
+# def save_multiplexseries(
+#     edges: ibis.Table,
+#     vertices: ibis.Table,
+#     dir: Path | str,
+#     existing_data_behavior="delete_matching",
+#     **kwargs,
+# ) -> Tuple[ibis.Table, ibis.Table]:
+#     """
+#     Save edges and vertices to disk following the muxpack directory structure.
+#     The directory and all sub-directories are created if they do not exist.
+#     Edges and vertices are not validated for consistency.
 
-    Args:
-        - edges: edge table to save.
-        - vertices: vertex table to save.
-        - dir: root path where the network will be saved.
-        - existing_data_behavior: passed through to ``pyarrow.dataset.write_dataset``.
-        - **kwargs: additional keyword arguments forwarded to ``pyarrow.dataset.write_dataset``.
+#     Args:
+#         - edges: edge table to save.
+#         - vertices: vertex table to save.
+#         - dir: root path where the network will be saved.
+#         - existing_data_behavior: passed through to ``pyarrow.dataset.write_dataset``.
+#         - **kwargs: additional keyword arguments forwarded to ``pyarrow.dataset.write_dataset``.
 
-    Returns:
-        - Tuple of ``(edges, vertices)`` table objects pointing to the saved files.
-    """
-    E = edges
-    V = vertices
-    dir = Path(dir)
+#     Returns:
+#         - Tuple of ``(edges, vertices)`` table objects pointing to the saved files.
+#     """
+#     E = edges
+#     V = vertices
+#     dir = Path(dir)
 
-    logger.info(f"Saving network to {dir}...")
+#     logger.info(f"Saving network to {dir}...")
 
-    # We do a manual partitioning to have maximum control.
-    # alternative and potentially more efficient would be partitioning using
-    # duckdb, however, that would pose some problems:
-    # - Hive naming convention does not follow the muxpack specification
-    # - Hive partitioning removes columns that are partitioned.
-    periods = E[["period"]].distinct().period.to_list()
+#     # We do a manual partitioning to have maximum control.
+#     # alternative and potentially more efficient would be partitioning using
+#     # duckdb, however, that would pose some problems:
+#     # - Hive naming convention does not follow the muxpack specification
+#     # - Hive partitioning removes columns that are partitioned.
+#     periods = E[["period"]].distinct().period.to_list()
 
-    for period in periods:
-        period_dir = dir / f"{period}"
-        os.makedirs(period_dir, exist_ok=True)
+#     for period in periods:
+#         period_dir = dir / f"{period}"
+#         os.makedirs(period_dir, exist_ok=True)
 
-        # writing vertices
-        vertices_file = period_dir / "vertices.parquet"
-        V_period = V.filter(V.period == period)
-        V_period.to_parquet(vertices_file)
+#         # writing vertices
+#         vertices_file = period_dir / "vertices.parquet"
+#         V_period = V.filter(V.period == period)
+#         V_period.to_parquet(vertices_file)
 
-        # writing edges
-        edges_dir = period_dir / "edges"
-        os.makedirs(edges_dir, exist_ok=True)
-        E_period = E.filter(E.period == period)
-        layers = E_period[["layer"]].distinct().layer.to_list()
-        logger.info(f"layers: {layers}")
-        for layer in layers:
-            layer_dir = edges_dir / f"{layer}"
-            # TODO further partition?
-            os.makedirs(layer_dir, exist_ok=True)
-            E_period_layer = E_period.filter(E_period.layer == layer).order_by(
-                ["src", "relationtype", "dst"]
-            )
-            E_period_layer.to_parquet_dir(
-                layer_dir, existing_data_behavior=existing_data_behavior, **kwargs
-            )
-            logger.info(f"\t\tSaved layer {layer}")
-        logger.info(f"\tFinished saving period {period}")
-    logger.info(f"Finished saving network to {dir}.")
+#         # writing edges
+#         edges_dir = period_dir / "edges"
+#         os.makedirs(edges_dir, exist_ok=True)
+#         E_period = E.filter(E.period == period)
+#         layers = E_period[["layer"]].distinct().layer.to_list()
+#         logger.info(f"layers: {layers}")
+#         for layer in layers:
+#             layer_dir = edges_dir / f"{layer}"
+#             # TODO further partition?
+#             os.makedirs(layer_dir, exist_ok=True)
+#             E_period_layer = E_period.filter(E_period.layer == layer).order_by(
+#                 ["src", "relationtype", "dst"]
+#             )
+#             E_period_layer.to_parquet_dir(
+#                 layer_dir, existing_data_behavior=existing_data_behavior, **kwargs
+#             )
+#             logger.info(f"\t\tSaved layer {layer}")
+#         logger.info(f"\tFinished saving period {period}")
+#     logger.info(f"Finished saving network to {dir}.")
 
-    con = ibis.duckdb.connect()
-    edges = con.read_parquet(f"{dir}/*/edges/**/*.parquet", table_name="edges")
-    vertices = con.read_parquet(f"{dir}/*/vertices.parquet", table_name="vertices")
-    return edges, vertices
+#     con = ibis.duckdb.connect()
+#     edges = con.read_parquet(f"{dir}/*/edges/**/*.parquet", table_name="edges")
+#     vertices = con.read_parquet(f"{dir}/*/vertices.parquet", table_name="vertices")
+#     return edges, vertices
 
 
 def save_multiplex(
@@ -193,16 +193,29 @@ def save_multiplex(
 
 
 def save_multiplexseries(
-    edges: ibis.Table, vertices: ibis.Table, dir: Path | str
-) -> None:
+    edges: ibis.Table, 
+    vertices: ibis.Table, 
+    dir: Path | str,
+    existing_data_behavior="delete_matching",
+     **kwargs
+ ) -> Tuple[ibis.Table, ibis.Table]:
     """
-    Save a multiplex series to disk by writing each period as a separate sub-directory.
+    Save edges and vertices to disk following the muxpack directory structure.
+    The directory and all sub-directories are created if they do not exist.
+    Edges and vertices are not validated for consistency.
 
     Args:
-        - edges: edge table with a ``period`` column.
-        - vertices: vertex table with a ``period`` column.
-        - dir: root path where the multiplex series will be saved.
+    
+        - edges: edge table to save.
+        - vertices: vertex table to save.
+        - dir: root path where the network will be saved.
+        - existing_data_behavior: passed through to ``pyarrow.dataset.write_dataset``.
+        - **kwargs: additional keyword arguments forwarded to ``pyarrow.dataset.write_dataset``.
+
+    Returns:
+        - Tuple of ``(edges, vertices)`` table objects pointing to the saved files.
     """
+     
     dir = Path(dir)
     periods: list[str] = (
         edges
@@ -215,7 +228,11 @@ def save_multiplexseries(
     for period in periods:
         E = edges.filter(edges.period == period)
         V = vertices.filter(vertices.period == period)
-        save_multiplex(edges=E, vertices=V, dir=dir / period)
+        speriod = f"{period}"
+        save_multiplex(edges=E, vertices=V, dir=dir / speriod, period=period, existing_data_behavior=existing_data_behavior, **kwargs)
+
+    mp = read_multiplexseries(dir)
+    return mp.edges, mp.vertices
 
 
 def save_bipartite(
@@ -271,4 +288,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     m = read_multiplexseries("data")
 
-    save_network(edges=m.edges, vertices=m.vertices, dir="data2")
+    save_multiplexseries(edges=m.edges, vertices=m.vertices, dir="data2")

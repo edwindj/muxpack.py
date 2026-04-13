@@ -271,6 +271,6 @@ class MultiplexSeries:
             mp = MultiplexSeries(edges=self.edges)
             mp.update_vertices()
             vertices = mp.vertices
-        E, V = io.save_network(edges, vertices, dir=dir, **kw_args)
+        E, V = io.save_multiplexseries(edges, vertices, dir=dir, **kw_args)
         self.edges = E
         self.vertices = V
