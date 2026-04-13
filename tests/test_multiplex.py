@@ -1,13 +1,12 @@
 import ibis
-from muxpack import Multiplex
+from muxpack import check_edges
+import pytest
 
-
-def test_layers():
+def test_check():
     edges = ibis.memtable(
         {
             "src": [1, 2, 2, 1],
             "dst": [2, 3, 4, 2],
-            "layer": ["A", "B", "A", "B"],
             "relationtype": [1, 2, 1, 2],
         }
     )
@@ -16,8 +15,5 @@ def test_layers():
             "id": [1, 2, 3, 4],
         }
     )
-    m = Multiplex(edges, vertices, period=2020)
-    assert len(m.layers()) == 2
-    for layer in m.layers():
-        assert layer in ["A", "B"]
-    assert m.period == 2020
+
+    check_edges(edges, check_period=False)
