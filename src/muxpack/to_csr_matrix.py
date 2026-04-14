@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 # from collections.abc import Generator
 
 
-def to_row_col_idx(edges: Table, vertices: Table) -> Table:
+def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> Table:
     """
     Turn an edge list into a row/column index table based on the given vertices table.
 
@@ -28,18 +28,34 @@ def to_row_col_idx(edges: Table, vertices: Table) -> Table:
     row = v.select(src="id", row="idx")
     col = v.select(dst="id", col="idx")
 
-    # may sum the number of columns
-    idx_edges = (
-        edges[["src", "dst"]]
-        .distinct()
-        .inner_join(row, "src")
-        .inner_join(col, "dst")
-        .mutate(data=True)
-        .select("data", "row", "col")
-    )
-    logger.debug(
-        f"Created row-col index table with {idx_edges.count().execute()} edges."
-    )
+    if use_weight:
+        idx_edges = (
+            edges
+            .aggregate(weight=edges.weight.sum(), by=["src", "dst"])
+            .inner_join(row, "src")
+            .inner_join(col, "dst")
+            .mutate(data=True)
+            .select("data", "row", "col", "weight")
+        )
+
+        logger.debug(
+            f"Created weighted row-col index table with {idx_edges.count().execute()} edges."
+        )
+    else:
+
+        # may sum the number of columns
+        idx_edges = (
+            edges[["src", "dst"]]
+            .distinct()
+            .inner_join(row, "src")
+            .inner_join(col, "dst")
+            .mutate(data=True)
+            .select("data", "row", "col")
+        )
+
+        logger.debug(
+            f"Created row-col index table with {idx_edges.count().execute()} edges."
+        )
     return idx_edges
 
 

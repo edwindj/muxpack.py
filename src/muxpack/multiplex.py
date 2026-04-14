@@ -75,18 +75,39 @@ class Multiplex:
         V = src.union(dst, distinct=True).to_pyarrow()
         self.vertices = ibis.memtable(V)
 
-    def to_csr_matrix(self, weight: ibis.Expression) -> csr_matrix[bool]:
+    def to_csr_matrix(self, use_weight: bool | str | ibis.Value = False) -> csr_matrix[bool] | csr_matrix[float]:
         """
         Transform the multiplex into a sparse matrix, collapsing all layers into one.
         To keep layers separate, use ``to_csr_matrices`` instead.
 
+        Args:
+            - use_weight: optional column in the edges table to use as weights for the adjacency matrix. If False, the adjacency matrix will be unweighted (boolean).
+            if True, the method will look for a column named "weight" in the edges table. If a string is provided, it will be used as the name of the weight column.
+              If not provided, the adjacency matrix will be unweighted (boolean).
+        
         Returns:
             - Sparse boolean matrix of shape ``(n_vertices, n_vertices)``.
         """
         from .to_csr_matrix import to_row_col_idx, idx_to_csr_matrix
 
-        idx = to_row_col_idx(self.edges, self.vertices)
-        M = idx_to_csr_matrix(idx, self.vertices)
+        E = self.edges
+        V = self.vertices
+
+        if use_weight is True:
+            weight = "weight"
+        elif isinstance(use_weight, str):
+            E[["weight"]] = E[[use_weight]]
+        elif isinstance(use_weight, ibis.Value):
+            weight = "weight"
+            E = E.mutate(weight=weight)
+        else: 
+            E = E.drop(["weight"], errors="ignore")
+
+        if (use_weight is not False) and (weight not in E.columns):
+            raise ValueError(f"Weight column '{weight}' not found in edges table")
+        
+        idx = to_row_col_idx(E, V)
+        M = idx_to_csr_matrix(idx, V)
         return M
 
     def to_csr_matrices(self) -> dict[str, csr_matrix]:
@@ -107,6 +128,30 @@ class Multiplex:
             M = idx_to_csr_matrix(idx, self.vertices)
             matrices[layer] = M
         return matrices
+    
+    def outdegree(self, by_layer: bool = False) -> ibis.Table:
+        """
+        Compute the out-degree of each vertex in the multiplex.
+
+        Args:
+            - by_layer: if True, compute the out-degree separately for each layer.
+
+        Returns:
+            - by_layer=False: Table with columns "id" and "out_degree", where "id" is the vertex id and "out_degree" is the total number of outgoing edges from that vertex across all layers.
+            - by_layer=True: Table with columns "id", "layer", and "out_degree", where "id" is the vertex id, "layer" is the layer name, and "out_degree" is the number of outgoing edges from that vertex in that layer.
+        """
+        E = self.edges
+
+        gb = ["src"]
+        if by_layer:
+            gb.append("layer")
+
+        outdegree = (
+            E.group_by(gb)
+            .aggregate(outdegree=E.count())
+            .rename(id = "src")
+        )
+        return outdegree
 
     def to_networkx(self) -> nx.MultiDiGraph:
         """
