@@ -1,3 +1,9 @@
+"""Single-period multiplex graph representation.
+
+This module defines :class:`Multiplex`, a validated container around ibis edge
+and vertex tables with helpers for conversions and degree summaries.
+"""
+
 import ibis
 
 from .check import check_edges, check_vertices

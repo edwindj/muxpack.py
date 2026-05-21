@@ -41,8 +41,9 @@ Validation
 Input / Output
 --------------
 
-.. autofunction:: muxpack.load_network
-.. autofunction:: muxpack.save_network
+.. autofunction:: muxpack.read_multiplexseries
+.. autofunction:: muxpack.save_multiplexseries
+.. autofunction:: muxpack.io.read_multiplexseries
 .. autofunction:: muxpack.io.save_multiplex
 .. autofunction:: muxpack.io.save_multiplexseries
 .. autofunction:: muxpack.io.save_bipartite

@@ -1,3 +1,9 @@
+"""Multi-period multiplex graph representation.
+
+This module defines :class:`MultiplexSeries`, which stores edges across periods
+and exposes filtering, per-period access, collapsing, and persistence helpers.
+"""
+
 import ibis
 
 from .check import check_edges, check_vertices
@@ -263,7 +269,8 @@ class MultiplexSeries:
 
         Args:
             - dir: path to the directory where the MultiplexSeries will be saved.
-            - **kw_args: additional keyword arguments forwarded to ``io.save_network``.
+                        - **kw_args: additional keyword arguments forwarded to
+                            ``io.save_multiplexseries``.
         """
         edges = self.edges
         vertices = self.vertices

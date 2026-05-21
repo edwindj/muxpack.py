@@ -1,3 +1,9 @@
+"""Validation helpers for edge and vertex ibis tables.
+
+The functions in this module are used by :class:`muxpack.Multiplex` and
+:class:`muxpack.MultiplexSeries` to validate required columns and value types.
+"""
+
 from ibis.expr.types import Table
 from ibis import dtype
 

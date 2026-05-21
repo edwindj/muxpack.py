@@ -1,3 +1,9 @@
+"""Input and output helpers for the muxpack on-disk layout.
+
+This module provides low-level read/write functions used by high-level classes
+such as :class:`muxpack.Multiplex` and :class:`muxpack.MultiplexSeries`.
+"""
+
 import ibis
 
 from muxpack.bipartite import Bipartite
@@ -12,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def read_multiplexseries(dir: Path) -> MultiplexSeries:
     """
-    Load a multiplex network from a directory containing Parquet files.
+    Load a multiplex series from a directory containing Parquet files.
 
     The expected directory structure is::
 
@@ -138,7 +144,8 @@ def save_multiplex(
     Args:
         - edges: edge table to save.
         - vertices: vertex table to save.
-        - period: the period for this multiplex, or ``None`` to skip period filtering.
+                - period: the period for this multiplex; if ``None``, all rows in ``edges``
+                    are written to the same directory.
         - dir: root path where the multiplex will be saved.
         - existing_data_behavior: passed through to ``pyarrow.dataset.write_dataset``.
         - **kwargs: additional keyword arguments forwarded to ``pyarrow.dataset.write_dataset``.

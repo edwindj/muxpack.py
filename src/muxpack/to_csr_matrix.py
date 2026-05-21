@@ -1,3 +1,5 @@
+"""Sparse matrix conversion utilities for multiplex edge tables."""
+
 from ibis import row_number, Table
 import ibis
 from scipy.sparse import csr_matrix
@@ -59,7 +61,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
     return idx_edges
 
 
-def idx_to_csr_matrix(idx: Table, vertices: Table) -> csr_matrix:
+def idx_to_csr_matrix(idx: Table, vertices: Table, use_weight: bool = False) -> csr_matrix:
     """
     Convert a row-column index table to a CSR sparse matrix.
 
@@ -87,11 +89,14 @@ def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
 
     Args:
         - edges: table with ``src`` and ``dst`` columns.
-        - vertices: table with an ``id`` column; edges are filtered to vertices present
-          in this table. Pass ``None`` to derive vertices from the edges table.
+                - vertices: table with an ``id`` column; edges are filtered to vertices present
+                    in this table.
 
     Returns:
         - Square CSR sparse matrix of shape ``(n_vertices, n_vertices)``.
+
+    Note:
+        - ``vertices`` is currently required and should not be ``None``.
     """
     # vertices may contain multiple periods
     if vertices is not None:

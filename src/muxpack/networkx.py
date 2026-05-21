@@ -1,3 +1,5 @@
+"""Conversion helpers from muxpack data structures to NetworkX graphs."""
+
 import networkx as nx
 import ibis
 from .to_csr_matrix import to_csr_matrix
