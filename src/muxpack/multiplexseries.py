@@ -212,6 +212,17 @@ class MultiplexSeries:
             E = E.filter(flt)
 
         self.edges = E
+    def __str__(self) -> str:
+        """
+        Return a string representation of the multiplex series.
+
+        Returns:
+            - String with number of edges, vertices, and periods.
+        """
+        n_edges = self.edges.count().execute()
+        n_vertices = self.vertex_ids.count().execute()
+        n_periods = len(self.periods())
+        return f"MultiplexSeries with {n_edges} edges, {n_vertices} vertices, and {n_periods} periods."
 
     def __copy__(self) -> "MultiplexSeries":
         """
