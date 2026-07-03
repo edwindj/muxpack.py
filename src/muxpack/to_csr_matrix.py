@@ -40,7 +40,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
         )
 
         logger.debug(
-            f"Created weighted row-col index table with {idx_edges.count().execute()} edges."
+            f"Created weighted row-col index table with {idx_edges.count()} edges."
         )
     else:
         # may sum the number of columns
@@ -54,7 +54,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
         )
 
         logger.debug(
-            f"Created row-col index table with {idx_edges.count().execute()} edges."
+            f"Created row-col index table with {idx_edges.count()} edges."
         )
     return idx_edges
 
