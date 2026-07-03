@@ -109,7 +109,11 @@ class Multiplex:
             weight = "weight"
             E = E.mutate(weight=weight)
         else:
-            E = E.drop(["weight"], errors="ignore")
+            if ("weight" in E.columns) and (use_weight is False):
+                logger.warning(
+                    "Weight column 'weight' found in edges table, but use_weight is False. Ignoring weight column."
+                )
+                E = E.drop(["weight"], errors="ignore")
 
         if (use_weight is not False) and (weight not in E.columns):
             raise ValueError(f"Weight column '{weight}' not found in edges table")
