@@ -40,14 +40,14 @@ def test_add_filter(simple):
     assert len(m3.layers()) == 1
     assert m3.layers() == ["B"]
 
-
     m4 = copy(simple)
     m4.add_filter(layers={"B": [2]})
     assert len(m4.periods()) == 1
     assert m4.periods() == [2021]
     assert len(m4.layers()) == 1
     assert m4.layers() == ["B"]
-    
+
+
 def test_add_filter_src_dst(simple):
     m = copy(simple)
     m.add_filter(src=[1])

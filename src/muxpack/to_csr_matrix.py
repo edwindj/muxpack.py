@@ -32,8 +32,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
 
     if use_weight:
         idx_edges = (
-            edges
-            .aggregate(weight=edges.weight.sum(), by=["src", "dst"])
+            edges.aggregate(weight=edges.weight.sum(), by=["src", "dst"])
             .inner_join(row, "src")
             .inner_join(col, "dst")
             .mutate(data=True)
@@ -44,7 +43,6 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
             f"Created weighted row-col index table with {idx_edges.count().execute()} edges."
         )
     else:
-
         # may sum the number of columns
         idx_edges = (
             edges[["src", "dst"]]
@@ -61,7 +59,9 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
     return idx_edges
 
 
-def idx_to_csr_matrix(idx: Table, vertices: Table, use_weight: bool = False) -> csr_matrix:
+def idx_to_csr_matrix(
+    idx: Table, vertices: Table, use_weight: bool = False
+) -> csr_matrix:
     """
     Convert a row-column index table to a CSR sparse matrix.
 

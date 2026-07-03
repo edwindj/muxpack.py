@@ -200,19 +200,19 @@ def save_multiplex(
 
 
 def save_multiplexseries(
-    edges: ibis.Table, 
-    vertices: ibis.Table, 
+    edges: ibis.Table,
+    vertices: ibis.Table,
     dir: Path | str,
     existing_data_behavior="delete_matching",
-     **kwargs
- ) -> Tuple[ibis.Table, ibis.Table]:
+    **kwargs,
+) -> Tuple[ibis.Table, ibis.Table]:
     """
     Save edges and vertices to disk following the muxpack directory structure.
     The directory and all sub-directories are created if they do not exist.
     Edges and vertices are not validated for consistency.
 
     Args:
-    
+
         - edges: edge table to save.
         - vertices: vertex table to save.
         - dir: root path where the network will be saved.
@@ -222,21 +222,23 @@ def save_multiplexseries(
     Returns:
         - Tuple of ``(edges, vertices)`` table objects pointing to the saved files.
     """
-     
+
     dir = Path(dir)
     periods: list[str] = (
-        edges
-        .select("period")
-        .distinct()
-        .order_by("period")
-        .period
-        .to_list()
+        edges.select("period").distinct().order_by("period").period.to_list()
     )
     for period in periods:
         E = edges.filter(edges.period == period)
         V = vertices.filter(vertices.period == period)
         speriod = f"{period}"
-        save_multiplex(edges=E, vertices=V, dir=dir / speriod, period=period, existing_data_behavior=existing_data_behavior, **kwargs)
+        save_multiplex(
+            edges=E,
+            vertices=V,
+            dir=dir / speriod,
+            period=period,
+            existing_data_behavior=existing_data_behavior,
+            **kwargs,
+        )
 
     mp = read_multiplexseries(dir)
     return mp.edges, mp.vertices
@@ -265,6 +267,7 @@ def save_bipartite(
     }
     with open(dir / "metadata.json", "w") as f:
         import json
+
         json.dump(json_content, f)
 
 
@@ -282,6 +285,7 @@ def read_bipartite(dir: Path | str) -> Bipartite:
     edges = ibis.read_parquet(dir / "edges.parquet")
     with open(dir / "metadata.json", "r") as f:
         import json
+
         metadata = json.load(f)
     role_src = metadata["role_src"]
     role_dst = metadata["role_dst"]

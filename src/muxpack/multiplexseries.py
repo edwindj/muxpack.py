@@ -15,6 +15,7 @@ from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
+
 class MultiplexSeries:
     """
     A multiplexseries is a series of Multiplex graphs with multiple layers, spanning multiple periods.
@@ -74,11 +75,7 @@ class MultiplexSeries:
             - Sorted list of period values.
         """
         periods = (
-            self.edges.select("period")
-            .distinct()
-            .order_by("period")
-            .period
-            .to_list()
+            self.edges.select("period").distinct().order_by("period").period.to_list()
         )
         # periods = self.edges[["period"]].distinct().to_pandas().period.to_list()
         return periods
@@ -90,13 +87,7 @@ class MultiplexSeries:
         Returns:
             - Sorted list of layer names.
         """
-        layers = (
-            self.edges.select("layer")
-            .distinct()
-            .order_by("layer")
-            .layer
-            .to_list()
-        )
+        layers = self.edges.select("layer").distinct().order_by("layer").layer.to_list()
         return layers
 
     def update_vertices(self) -> None:

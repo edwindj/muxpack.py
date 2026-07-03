@@ -21,9 +21,11 @@ def test_to_csr_matrix(edges_vertices):
     assert isinstance(m, csr_matrix)
     print(m.toarray())
 
+
 def test_to_weighted_csr_matrix(edges_vertices):
     edges, vertices = edges_vertices
     edges = edges.mutate(weight=[1.0, 2.0, 3.0])
-    m = muxpack.to_csr_matrix(edges, vertices, use_weight="weight")
+    # m = muxpack.to_csr_matrix(edges, vertices, use_weight="weight")
+    m = muxpack.to_csr_matrix(edges, vertices)
     assert isinstance(m, csr_matrix)
     print(m.toarray())

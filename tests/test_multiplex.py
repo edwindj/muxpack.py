@@ -1,6 +1,7 @@
 import ibis
 from muxpack import Multiplex
 
+
 def test_layers():
     edges = ibis.memtable(
         {
@@ -21,6 +22,7 @@ def test_layers():
         assert layer in ["A", "B"]
     assert m.period == 2020
 
+
 def test_outdegree():
     edges = ibis.memtable(
         {
@@ -38,4 +40,4 @@ def test_outdegree():
     m = Multiplex(edges, vertices)
     outdegree = m.outdegree()
     assert outdegree["id"].to_list() == [1, 2]
-    assert outdegree["outdegree"].to_list() == [2, 2] 
+    assert outdegree["outdegree"].to_list() == [2, 2]

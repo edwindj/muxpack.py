@@ -81,7 +81,9 @@ class Multiplex:
         V = src.union(dst, distinct=True).to_pyarrow()
         self.vertices = ibis.memtable(V)
 
-    def to_csr_matrix(self, use_weight: bool | str | ibis.Value = False) -> csr_matrix[bool] | csr_matrix[float]:
+    def to_csr_matrix(
+        self, use_weight: bool | str | ibis.Value = False
+    ) -> csr_matrix[bool] | csr_matrix[float]:
         """
         Transform the multiplex into a sparse matrix, collapsing all layers into one.
         To keep layers separate, use ``to_csr_matrices`` instead.
@@ -90,7 +92,7 @@ class Multiplex:
             - use_weight: optional column in the edges table to use as weights for the adjacency matrix. If False, the adjacency matrix will be unweighted (boolean).
             if True, the method will look for a column named "weight" in the edges table. If a string is provided, it will be used as the name of the weight column.
               If not provided, the adjacency matrix will be unweighted (boolean).
-        
+
         Returns:
             - Sparse boolean matrix of shape ``(n_vertices, n_vertices)``.
         """
@@ -106,12 +108,12 @@ class Multiplex:
         elif isinstance(use_weight, ibis.Value):
             weight = "weight"
             E = E.mutate(weight=weight)
-        else: 
+        else:
             E = E.drop(["weight"], errors="ignore")
 
         if (use_weight is not False) and (weight not in E.columns):
             raise ValueError(f"Weight column '{weight}' not found in edges table")
-        
+
         idx = to_row_col_idx(E, V)
         M = idx_to_csr_matrix(idx, V)
         return M
@@ -134,7 +136,7 @@ class Multiplex:
             M = idx_to_csr_matrix(idx, self.vertices)
             matrices[layer] = M
         return matrices
-    
+
     def outdegree(self, by_layer: bool = False) -> ibis.Table:
         """
         Compute the out-degree of each vertex in the multiplex.
@@ -152,11 +154,7 @@ class Multiplex:
         if by_layer:
             gb.append("layer")
 
-        outdegree = (
-            E.group_by(gb)
-            .aggregate(outdegree=E.count())
-            .rename(id = "src")
-        )
+        outdegree = E.group_by(gb).aggregate(outdegree=E.count()).rename(id="src")
         return outdegree
 
     def to_networkx(self) -> nx.MultiDiGraph:

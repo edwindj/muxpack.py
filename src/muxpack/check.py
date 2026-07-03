@@ -36,12 +36,10 @@ def check_edges(edges: Table, check_period=True) -> bool:
     if not check_period:
         expect_types.pop("period", None)
 
-    opt_types = {
-        "weight": "numeric"
-    }
+    opt_types = {"weight": "numeric"}
 
     if check_column_type(edges, expect_types, optional=False):
-        if (check_column_type(edges, opt_types, optional=True)):
+        if check_column_type(edges, opt_types, optional=True):
             return True
     return False
 
@@ -74,7 +72,9 @@ def check_vertices(vertices: Table, check_period=True) -> bool:
     return True
 
 
-def check_column_type(t: Table, expected_types: dict[str, str], optional: bool = False) -> bool:
+def check_column_type(
+    t: Table, expected_types: dict[str, str], optional: bool = False
+) -> bool:
     """
     Check that the columns in a table have the expected types.
 
@@ -95,7 +95,7 @@ def check_column_type(t: Table, expected_types: dict[str, str], optional: bool =
             else:
                 logger.warning(f"Column '{column}' is missing.")
                 return False
-            
+
         col = t[column]
         coltype = col.type()
         if expected_type == "integer" and coltype.is_integer():
