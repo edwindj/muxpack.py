@@ -222,7 +222,7 @@ class MultiplexSeries:
         """
         return MultiplexSeries(self.edges, self.vertices)
 
-    def collapse(self) -> Multiplex:
+    def collapse(self, period: int | None = None) -> Multiplex:
         """
         Collapse the multiplex series into a single Multiplex by discarding period
         information. Duplicate edges across periods are removed. This is useful
@@ -236,7 +236,7 @@ class MultiplexSeries:
             V = self.vertices.select("id").distinct()
         else:
             V = None
-        return Multiplex(edges=E, vertices=V, period=None)
+        return Multiplex(edges=E, vertices=V, period=period)
 
     def collapse_to(self, dir: Path | str) -> None:
         """

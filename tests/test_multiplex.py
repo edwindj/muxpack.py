@@ -39,5 +39,5 @@ def test_outdegree():
     )
     m = Multiplex(edges, vertices)
     outdegree = m.outdegree()
-    assert outdegree["id"].to_list() == [1, 2]
+    assert sorted(outdegree["id"].to_list()) == [1, 2]
     assert outdegree["outdegree"].to_list() == [2, 2]

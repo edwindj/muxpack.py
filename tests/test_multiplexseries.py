@@ -65,3 +65,16 @@ def test_update_relationtypes():
     assert set(rt["label"]) == {"A_1", "B_2"}
     assert set(rt["relationtype"]) == {1, 2}
     assert set(rt["layer"]) == {"A", "B"}
+
+def test_get_csr():
+    edges = ibis.memtable(
+        {
+            "src": [1, 2, 2, 1],
+            "dst": [2, 3, 4, 2],
+            "period": [2020, 2020, 2021, 2021],
+            "layer": ["A", "B", "A", "B"],
+            "relationtype": [1, 2, 1, 2],
+        }
+    )
+    vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
+    m = MultiplexSeries(edges, vertices)
