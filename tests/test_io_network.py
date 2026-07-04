@@ -3,6 +3,7 @@ import ibis
 import tempfile
 from collections.abc import Generator
 import pytest
+from scipy.sparse import csr_matrix
 
 
 @pytest.fixture()

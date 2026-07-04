@@ -122,16 +122,21 @@ class Multiplex:
         M = idx_to_csr_matrix(idx, V)
         return M
 
-    def to_csr_matrices(self) -> dict[str, csr_matrix]:
+    def to_csr_matrices(self, layers: list[str] | None = None) -> dict[str, csr_matrix]:
         """
         Transform the multiplex into a dictionary of sparse matrices, one per layer.
+
+        Args:
+            - layers: optional list of layer names to include. If None, all layers are included.
 
         Returns:
             - Dictionary mapping layer name to a sparse boolean matrix of shape ``(n_vertices, n_vertices)``.
         """
         from .to_csr_matrix import to_row_col_idx, idx_to_csr_matrix
 
-        layers = self.layers()
+        # Maybe turn this into a generator instead of a dict, to avoid loading all matrices into memory at once.
+
+        layers = self.layers() if layers is None else layers
         matrices = {}
         for layer in layers:
             idx = to_row_col_idx(

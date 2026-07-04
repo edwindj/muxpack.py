@@ -1,5 +1,6 @@
 import ibis
 from muxpack import MultiplexSeries
+from scipy.sparse import csr_matrix
 
 
 # def test_multiplexseries():
@@ -65,6 +66,65 @@ def test_update_relationtypes():
     assert set(rt["label"]) == {"A_1", "B_2"}
     assert set(rt["relationtype"]) == {1, 2}
     assert set(rt["layer"]) == {"A", "B"}
+
+def test_filter_period():
+    edges = ibis.memtable(
+        {
+            "src": [1, 2, 2, 1],
+            "dst": [2, 3, 4, 2],
+            "period": [2020, 2020, 2021, 2021],
+            "layer": ["A", "B", "A", "B"],
+            "relationtype": [1, 2, 1, 2],
+        }
+    )
+    vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
+    m = MultiplexSeries(edges, vertices)
+    m.add_filter(periods=[2020])
+    assert(m.periods() == [2020])
+    assert(m.edges.count().execute() == 2)
+
+def test_filter_periods():
+    edges = ibis.memtable(
+        {
+            "src": [1, 2, 2, 1],
+            "dst": [2, 3, 4, 2],
+            "period": [2020, 2020, 2021, 2021],
+            "layer": ["A", "B", "A", "B"],
+            "relationtype": [1, 2, 1, 2],
+        }
+    )
+    vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
+    m = MultiplexSeries(edges, vertices)
+    m.add_filter(periods=[2020,2021])
+    assert(m.periods() == [2020,2021])
+    assert(m.edges.count().execute() == 4)
+
+def test_filter_labels():
+    edges = ibis.memtable(
+        {
+            "src": [1, 2, 2, 1],
+            "dst": [2, 3, 4, 2],
+            "period": [2020, 2020, 2021, 2021],
+            "layer": ["A", "B", "A", "B"],
+            "relationtype": [1, 2, 1, 2],
+        }
+    )
+    vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
+
+    m = MultiplexSeries(edges, vertices)
+    layers = {"A": [1]}
+    m.add_filter(layers=layers)
+    assert(m.layers() == ["A"])
+
+    m = MultiplexSeries(edges, vertices)
+    layers = {"B": [2]}
+    m.add_filter(layers=layers)
+    assert(m.layers() == ["B"])
+
+    m = MultiplexSeries(edges, vertices)
+    layers = {"A": None}
+    m.add_filter(layers=layers)
+    assert(m.layers() == ["A"])
 
 def test_get_csr():
     edges = ibis.memtable(

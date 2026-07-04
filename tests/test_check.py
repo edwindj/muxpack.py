@@ -1,6 +1,7 @@
 import ibis
 from muxpack import check_edges
 
+from scipy.sparse import csr_matrix
 
 def test_layers():
     edges = ibis.memtable(

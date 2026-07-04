@@ -5,13 +5,18 @@ and exposes filtering, per-period access, collapsing, and persistence helpers.
 """
 
 import ibis
+from ibis import _
+
+from muxpack.networkx import to_MultiDiGraph
 
 from .check import check_edges, check_vertices
 from pathlib import Path
 from . import io
 from .multiplex import Multiplex
 import logging
-from typing import Tuple
+from typing import Generator, Tuple
+from scipy.sparse import csr_matrix
+import networkx as nx
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +94,39 @@ class MultiplexSeries:
         """
         layers = self.edges.select("layer").distinct().order_by("layer").layer.to_list()
         return layers
+    
+    def to_csr_matrices(self, periods: list[int] | None = None) -> Generator[Tuple[csr_matrix, int]]:
+        """
+        Generate a sparse matrix for each period. The indices of the matrix correspond to
+        the rownumber the ``vertex_ids`` table.
+
+        Args:
+            - periods: list of periods to generate matrices for. If empty, all periods
+              present in ``edges`` are used.
+        """
+        from .to_csr_matrix import to_csr_matrix
+
+        if periods is None:
+            periods = self.periods()
+
+        for period in periods:
+            E_y = self.edges.filter(_.period == period)
+            yield to_csr_matrix(E_y, self.vertex_ids), period
+            
+    def to_networkx(self, periods: list[int] | None = None) -> Generator[Tuple[nx.MultiDiGraph, int]]:
+        """
+        Generate a NetworkX MultiDiGraph for each period.
+
+        Args:
+            - periods: list of periods to generate graphs for. If empty, all periods
+              present in ``edges`` are used.
+        """
+        if periods is None:
+            periods = self.periods()
+
+        for period in periods:
+            E_y = self.edges.filter(_.period == period)
+            yield to_MultiDiGraph(E_y, self.vertex_ids), period
 
     def update_vertices(self) -> None:
         """
@@ -172,7 +210,7 @@ class MultiplexSeries:
 
         Args:
             - periods: list of periods to keep.
-            - layers: dict of {layer:[relationtype]} to keep.
+            - layers: dict of {layer:[relationtype]} to keep. Use ``None`` for the list of relationtypes to keep all relationtypes for that layer.
             - src: list of source vertex ids (ego) to keep.
             - dst: list of destination vertex ids (non-ego) to keep.
         """
@@ -181,15 +219,20 @@ class MultiplexSeries:
         flt: list[ibis.BooleanValue] = []
 
         if periods is not None and len(periods) > 0:
-            flt.append(E.period.isin(periods))
+            flt.append(_.period.isin(periods))
 
         if layers is not None and len(layers) > 0:
             rt = []
+            if not isinstance(layers, dict):
+                raise ValueError("layers must be a dict of {layer:[relationtype]|None}")
 
+            sl = self.layers()
             for layer, relationtypes in layers.items():
-                e = E.layer == layer
-                if not relationtypes is None:
-                    e = ibis.and_(e, E.relationtype.isin(relationtypes))
+                if layer not in sl:
+                    raise ValueError(f"Layer '{layer}' not found in multiplex series")
+                e = _.layer == layer
+                if relationtypes is not None:
+                    e = ibis.and_(e, _.relationtype.isin(relationtypes))
                 rt.append(e)
 
             if len(rt) > 1:
@@ -200,12 +243,12 @@ class MultiplexSeries:
         if src is not None and len(src) > 0:
             vid = ibis.memtable({"id": src})
             # we use semi join because we expect the vertex list to be large
-            E = E.semi_join(vid, E.src == vid.id)
+            E = E.semi_join(vid, _.src == vid.id)
 
         if dst is not None and len(dst) > 0:
             vid = ibis.memtable({"id": dst})
             # we use semi join because we expect the vertex list to be large
-            E = E.semi_join(vid, E.dst == vid.id)
+            E = E.semi_join(vid, _.dst == vid.id)
 
         logger.debug("Filter: f{flt}")
         if len(flt):
@@ -221,8 +264,9 @@ class MultiplexSeries:
         """
         n_edges = self.edges.count().execute()
         n_vertices = self.vertex_ids.count().execute()
-        n_periods = len(self.periods())
-        return f"MultiplexSeries with {n_edges} edges, {n_vertices} vertices, and {n_periods} periods."
+        periods = self.periods()
+        layers = self.layers()
+        return f"MultiplexSeries\n  Edges: {n_edges}\n  Vertices: {n_vertices}\n  Periods: {periods}\n  Layers: {layers}"
 
     def __copy__(self) -> "MultiplexSeries":
         """

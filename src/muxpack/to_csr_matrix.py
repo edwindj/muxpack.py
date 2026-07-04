@@ -1,6 +1,6 @@
 """Sparse matrix conversion utilities for multiplex edge tables."""
 
-from ibis import row_number, Table
+from ibis import row_number, Table, _
 import ibis
 from scipy.sparse import csr_matrix
 from muxpack.multiplex import Multiplex
@@ -32,7 +32,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
 
     if use_weight:
         idx_edges = (
-            edges.aggregate(weight=edges.weight.sum(), by=["src", "dst"])
+            edges.aggregate(weight=_.weight.sum(), by=["src", "dst"])
             .inner_join(row, "src")
             .inner_join(col, "dst")
             .mutate(data=True)
@@ -40,7 +40,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
         )
 
         logger.debug(
-            f"Created weighted row-col index table with {idx_edges.count()} edges."
+            f"Created weighted row-col index tables."
         )
     else:
         # may sum the number of columns
@@ -54,7 +54,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
         )
 
         logger.debug(
-            f"Created row-col index table with {idx_edges.count()} edges."
+            f"Created row-col index table with edges."
         )
     return idx_edges
 
@@ -110,12 +110,13 @@ def to_period_csr_matrix(
     edges: Table, vertices: Table | None, periods: list[int] = []
 ) -> Generator[Tuple[csr_matrix, int]]:
     """
-    Generate a sparse matrix for each period.
+    Generate a sparse matrix for each period. The indices of the matrix correspond to
+    the rownumber the ``vertices`` table.
 
     Args:
         - edges: table with columns ``src``, ``dst``, and ``period``.
-        - vertices: table with columns ``id`` and ``period``, or ``None`` to derive
-          vertices from the edges table for each period.
+        - vertices: table with columns ``id`` to derive
+          vertices from the edges table 
         - periods: list of periods to generate matrices for. If empty, all periods
           present in ``edges`` are used.
 
@@ -125,12 +126,9 @@ def to_period_csr_matrix(
     if len(periods) == 0:
         periods = edges[["period"]].distinct().period.to_list()
     for period in periods:
-        E_y = edges.filter(edges.period == period)
-        if vertices is not None:
-            V_y = vertices.filter(vertices.period == period)
-        else:
-            V_y = None
-
+        E_y = edges.filter(_.period == period)
+        V_y = vertices
+        
         yield to_csr_matrix(E_y, V_y), period
 
 
