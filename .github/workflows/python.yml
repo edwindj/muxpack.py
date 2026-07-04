@@ -65,5 +65,11 @@ jobs:
         run: uv sync --locked --group docs
 
       - name: Build docs with warnings as errors
-        run: uv run sphinx-build -b html docs docs/_build/html -W
+        run: uv run sphinx-build -b html docs docs/_build/html -WA
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/_build/html
  
