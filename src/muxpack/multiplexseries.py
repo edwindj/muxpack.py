@@ -68,7 +68,7 @@ class MultiplexSeries:
         self.vertices = vertices
         self.relationtypes = relationtypes
 
-        if not vertices is None:
+        if vertices is not None:
             logger.info("Vertices table provided, using it as is.")
             self.vertex_ids = vertices[["id"]].distinct()
 

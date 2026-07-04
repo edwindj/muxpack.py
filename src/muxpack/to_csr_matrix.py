@@ -3,7 +3,6 @@
 from ibis import row_number, Table, _
 import ibis
 from scipy.sparse import csr_matrix
-from muxpack.multiplex import Multiplex
 from typing import Tuple, Generator
 
 import logging
@@ -39,7 +38,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
             .select("data", "row", "col", "weight")
         )
 
-        logger.debug(f"Created weighted row-col index tables.")
+        logger.debug("Created weighted row-col index tables.")
     else:
         # may sum the number of columns
         idx_edges = (
@@ -51,7 +50,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
             .select("data", "row", "col")
         )
 
-        logger.debug(f"Created row-col index table with edges.")
+        logger.debug("Created row-col index table with edges.")
     return idx_edges
 
 

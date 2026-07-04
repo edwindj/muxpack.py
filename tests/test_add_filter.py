@@ -2,7 +2,6 @@ import ibis
 from muxpack import MultiplexSeries
 import pytest
 from collections.abc import Generator
-from scipy.sparse import csr_matrix
 from copy import copy
 
 

@@ -1,6 +1,5 @@
 import ibis
 from muxpack import MultiplexSeries
-from scipy.sparse import csr_matrix
 
 
 # def test_multiplexseries():

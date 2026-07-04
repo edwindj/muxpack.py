@@ -1,7 +1,6 @@
 import ibis
 from muxpack import Bipartite
 import pandas as pd
-from scipy.sparse import csr_matrix
 
 
 def make_table():

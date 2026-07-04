@@ -12,6 +12,7 @@ from pathlib import Path
 import os
 import logging
 from typing import Tuple
+from ibis import _ 
 
 logger = logging.getLogger(__name__)
 
@@ -170,21 +171,21 @@ def save_multiplex(
     vertices_file = dir / "vertices.parquet"
     if period is not None:
         # test if period column is there, if not add it to
-        V = V.filter(V.period == period)
+        V = V.filter(_.period == period)
     V.to_parquet(vertices_file)
 
     # writing edges
     edges_dir = dir / "edges"
 
     os.makedirs(edges_dir, exist_ok=True)
-    E_period = E.filter(E.period == period)
+    E_period = E.filter(_.period == period)
     layers = E_period[["layer"]].distinct().layer.to_list()
     logger.info(f"layers: {layers}")
     for layer in layers:
         layer_dir = edges_dir / f"{layer}"
         # TODO further partition?
         os.makedirs(layer_dir, exist_ok=True)
-        E_period_layer = E_period.filter(E_period.layer == layer).order_by(
+        E_period_layer = E_period.filter(_.layer == layer).order_by(
             ["src", "relationtype", "dst"]
         )
         E_period_layer.to_parquet_dir(
