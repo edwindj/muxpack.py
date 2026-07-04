@@ -3,11 +3,20 @@ name = "muxpack"
 version = "0.2.0dev1"
 description = "Tools to handle multiplex network data more easily"
 readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
 authors = [
     { name = "Edwin de Jonge", email = "edwindjonge@gmail.com" },
     { name = "Jan van der Laan", email = "djvanderlaan@gmail.com" }
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "ibis-framework[duckdb]>=12.0.0",
     "networkx>=3.6.1",
@@ -33,7 +42,7 @@ dev = [
     "ruff>=0.15.4",
 ]
 docs = [
-    "sphinx>=9.1.0",
+    "sphinx>=7.4,<9.0",
     "sphinx-rtd-theme>=3.0.0",
 ]
 

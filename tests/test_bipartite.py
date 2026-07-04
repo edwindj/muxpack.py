@@ -15,8 +15,6 @@ def make_table():
 
 def test_bipartite():
     edges = make_table()
-    V_a = edges.select(id="a").distinct()
-    V_b = edges.select(id="b").distinct()
     bp = Bipartite(edges, role_src="a", role_dst="b")
 
     assert bp.role_dst == "b"

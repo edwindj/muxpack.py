@@ -280,7 +280,7 @@ class MultiplexSeries:
         Returns:
             - A new MultiplexSeries sharing the same ``edges`` and ``vertices`` tables.
         """
-        return MultiplexSeries(self.edges, self.vertices)
+        return MultiplexSeries(self.edges, self.vertices, self.relationtypes)
 
     def collapse(self, period: int | None = None) -> Multiplex:
         """
@@ -320,15 +320,22 @@ class MultiplexSeries:
 
         Args:
             - dir: path to the directory where the MultiplexSeries will be saved.
-                        - **kw_args: additional keyword arguments forwarded to
-                            ``io.save_multiplexseries``.
+            - **kw_args: additional keyword arguments forwarded to
+              ``io.save_multiplexseries``.
         """
         edges = self.edges
         vertices = self.vertices
+        relationtypes = self.relationtypes
         if vertices is None:
             mp = MultiplexSeries(edges=self.edges)
             mp.update_vertices()
             vertices = mp.vertices
-        E, V = io.save_multiplexseries(edges, vertices, dir=dir, **kw_args)
+        E, V = io.save_multiplexseries(
+            edges=edges,
+            vertices=vertices,
+            relationtypes=relationtypes,
+            dir=dir,
+            **kw_args,
+        )
         self.edges = E
         self.vertices = V

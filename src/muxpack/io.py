@@ -12,7 +12,7 @@ from pathlib import Path
 import os
 import logging
 from typing import Tuple
-from ibis import _ 
+from ibis import _
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +49,18 @@ def read_multiplexseries(dir: Path) -> MultiplexSeries:
         logger.info(f"No vertices found: {e}")
         vertices = None
 
+    relationtypes = None
+    relationtypes_file = Path(dir) / "relationtypes.parquet"
+    legacy_relationtypes_file = Path(dir) / "relationtypes.csv"
     try:
-        relationtypes = ibis.read_parquet(f"{dir}/*/relationtypes.csv")
+        if relationtypes_file.exists():
+            relationtypes = con.read_parquet(
+                str(relationtypes_file), table_name="relationtypes"
+            )
+        elif legacy_relationtypes_file.exists():
+            relationtypes = con.read_csv(
+                str(legacy_relationtypes_file), table_name="relationtypes"
+            )
     except Exception as e:
         logger.info(f"No relationtypes found: {e}")
         relationtypes = None
@@ -142,14 +152,21 @@ def save_multiplex(
     The directory and all sub-directories are created if they do not exist.
     Edges and vertices are not validated for consistency.
 
-    Args:
-        - edges: edge table to save.
-        - vertices: vertex table to save.
-                - period: the period for this multiplex; if ``None``, all rows in ``edges``
-                    are written to the same directory.
-        - dir: root path where the multiplex will be saved.
-        - existing_data_behavior: passed through to ``pyarrow.dataset.write_dataset``.
-        - **kwargs: additional keyword arguments forwarded to ``pyarrow.dataset.write_dataset``.
+    Parameters
+    ----------
+    edges
+        Edge table to save.
+    vertices
+        Vertex table to save.
+    dir
+        Root path where the multiplex will be saved.
+    period
+        Period for this multiplex. If ``None``, all rows in ``edges`` are written.
+    existing_data_behavior
+        Passed through to ``pyarrow.dataset.write_dataset``.
+    kwargs
+        Additional keyword arguments forwarded to
+        ``pyarrow.dataset.write_dataset``.
 
     Returns:
         - Tuple of ``(edges, vertices)`` table objects pointing to the saved files.
@@ -178,7 +195,9 @@ def save_multiplex(
     edges_dir = dir / "edges"
 
     os.makedirs(edges_dir, exist_ok=True)
-    E_period = E.filter(_.period == period)
+    E_period = E
+    if period is not None:
+        E_period = E.filter(_.period == period)
     layers = E_period[["layer"]].distinct().layer.to_list()
     logger.info(f"layers: {layers}")
     for layer in layers:
@@ -204,6 +223,7 @@ def save_multiplexseries(
     edges: ibis.Table,
     vertices: ibis.Table,
     dir: Path | str,
+    relationtypes: ibis.Table | None = None,
     existing_data_behavior="delete_matching",
     **kwargs,
 ) -> Tuple[ibis.Table, ibis.Table]:
@@ -216,6 +236,7 @@ def save_multiplexseries(
 
         - edges: edge table to save.
         - vertices: vertex table to save.
+        - relationtypes: optional relationtype metadata table to save at root level.
         - dir: root path where the network will be saved.
         - existing_data_behavior: passed through to ``pyarrow.dataset.write_dataset``.
         - **kwargs: additional keyword arguments forwarded to ``pyarrow.dataset.write_dataset``.
@@ -225,6 +246,7 @@ def save_multiplexseries(
     """
 
     dir = Path(dir)
+    os.makedirs(dir, exist_ok=True)
     periods: list[str] = (
         edges.select("period").distinct().order_by("period").period.to_list()
     )
@@ -240,6 +262,9 @@ def save_multiplexseries(
             existing_data_behavior=existing_data_behavior,
             **kwargs,
         )
+
+    if relationtypes is not None:
+        relationtypes.to_parquet(dir / "relationtypes.parquet")
 
     mp = read_multiplexseries(dir)
     return mp.edges, mp.vertices

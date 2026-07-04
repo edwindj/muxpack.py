@@ -83,7 +83,7 @@ class Multiplex:
 
     def to_csr_matrix(
         self, use_weight: bool | str | ibis.Value = False
-    ) -> csr_matrix[bool] | csr_matrix[float]:
+    ) -> csr_matrix:
         """
         Transform the multiplex into a sparse matrix, collapsing all layers into one.
         To keep layers separate, use ``to_csr_matrices`` instead.
@@ -194,6 +194,12 @@ class Multiplex:
             self.update_vertices()
             vertices = self.vertices
         period = self.period
-        edges, vertices = io.save_multiplex(edges, vertices, period, dir=dir, **kw_args)
+        edges, vertices = io.save_multiplex(
+            edges=edges,
+            vertices=vertices,
+            dir=dir,
+            period=period,
+            **kw_args,
+        )
         self.edges = edges
         self.vertices = vertices

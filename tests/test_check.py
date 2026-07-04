@@ -13,11 +13,5 @@ def test_layers():
             "weight": [0.1, 1.2, 1.4, 1.5],
         }
     )
-    vertices = ibis.memtable(
-        {
-            "id": [1, 2, 3, 4],
-        }
-    )
-
     # layer is missing
-    assert check_edges(edges) == False
+    assert not check_edges(edges)

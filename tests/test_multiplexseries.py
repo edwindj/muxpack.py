@@ -22,8 +22,8 @@ def test_layers_and_periods():
     vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
     m = MultiplexSeries(edges, vertices)
     assert len(m.layers()) == 2
-    for l in m.layers():
-        assert l in ["A", "B"]
+    for layer in m.layers():
+        assert layer in ["A", "B"]
 
     assert len(m.periods()) == 2
     for y in m.periods():
@@ -141,3 +141,5 @@ def test_get_csr():
     )
     vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
     m = MultiplexSeries(edges, vertices)
+    matrices = list(m.to_csr_matrices())
+    assert len(matrices) == 2

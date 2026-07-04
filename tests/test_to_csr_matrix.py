@@ -4,7 +4,6 @@ from collections.abc import Generator
 from typing import Tuple
 import ibis
 from scipy.sparse import csr_matrix
-import numpy as np
 
 
 @pytest.fixture()
@@ -46,4 +45,4 @@ def test_multiplex_to_csr_matrix(edges_vertices):
     print(csr.toarray())
     assert isinstance(csr, csr_matrix)
     assert csr.shape == (3, 3)
-    csr.todense() == np.array([[0, 1, 1], [0, 0, 1], [0, 0, 0]])
+    # assert csr.todense() == np.array([[0, 1, 1], [0, 0, 1], [0, 0, 0]])

@@ -84,8 +84,8 @@ def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
 
     Args:
         - edges: table with ``src`` and ``dst`` columns.
-                - vertices: table with an ``id`` column; edges are filtered to vertices present
-                    in this table.
+        - vertices: table with an ``id`` column; edges are filtered to vertices present
+          in this table.
 
     Returns:
         - Square CSR sparse matrix of shape ``(n_vertices, n_vertices)``.
@@ -102,7 +102,7 @@ def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
 
 
 def to_period_csr_matrix(
-    edges: Table, vertices: Table | None, periods: list[int] = []
+    edges: Table, vertices: Table | None, periods: list[int] | None = None
 ) -> Generator[Tuple[csr_matrix, int]]:
     """
     Generate a sparse matrix for each period. The indices of the matrix correspond to
@@ -118,7 +118,7 @@ def to_period_csr_matrix(
     Returns:
         - Generator of ``(csr_matrix, period)`` tuples, one per period.
     """
-    if len(periods) == 0:
+    if periods is None or len(periods) == 0:
         periods = edges[["period"]].distinct().period.to_list()
     for period in periods:
         E_y = edges.filter(_.period == period)
