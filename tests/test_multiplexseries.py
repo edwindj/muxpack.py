@@ -143,3 +143,40 @@ def test_get_csr():
     m = MultiplexSeries(edges, vertices)
     matrices = list(m.to_csr_matrices())
     assert len(matrices) == 2
+
+
+def test_multiplexes_returns_all_period_objects():
+    edges = ibis.memtable(
+        {
+            "src": [1, 2, 2, 1],
+            "dst": [2, 3, 4, 2],
+            "period": [2020, 2020, 2021, 2021],
+            "layer": ["A", "B", "A", "B"],
+            "relationtype": [1, 2, 1, 2],
+        }
+    )
+    vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
+    m = MultiplexSeries(edges, vertices)
+
+    all_multiplexes = m.multiplexes()
+    assert len(all_multiplexes) == 2
+    periods = [period for period, _ in all_multiplexes]
+    assert periods == [2020, 2021]
+
+
+def test_collapse_removes_period_column_and_deduplicates():
+    edges = ibis.memtable(
+        {
+            "src": [1, 1, 2],
+            "dst": [2, 2, 3],
+            "period": [2020, 2021, 2021],
+            "layer": ["A", "A", "B"],
+            "relationtype": [1, 1, 2],
+        }
+    )
+    vertices = ibis.memtable({"id": [1, 2, 3], "period": [2020, 2021, 2021]})
+    m = MultiplexSeries(edges, vertices)
+
+    collapsed = m.collapse()
+    assert "period" not in collapsed.edges.columns
+    assert collapsed.edges.count().execute() == 2

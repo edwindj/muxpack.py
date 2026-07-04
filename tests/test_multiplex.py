@@ -72,3 +72,36 @@ def test_cli_main_version_flag():
     with pytest.raises(SystemExit) as exc:
         muxpack.main(["--version"])
     assert exc.value.code == 0
+
+
+def test_update_vertices_from_edges():
+    edges = ibis.memtable(
+        {
+            "src": [1, 1, 3],
+            "dst": [2, 3, 4],
+            "layer": ["A", "A", "B"],
+            "relationtype": [1, 1, 2],
+        }
+    )
+    m = Multiplex(edges=edges, vertices=None)
+    m.update_vertices()
+
+    ids = sorted(m.vertices.id.to_list())
+    assert ids == [1, 2, 3, 4]
+
+
+def test_to_networkx_returns_multidigraph():
+    edges = ibis.memtable(
+        {
+            "src": [1, 2],
+            "dst": [2, 3],
+            "layer": ["A", "B"],
+            "relationtype": [1, 2],
+        }
+    )
+    vertices = ibis.memtable({"id": [1, 2, 3]})
+    m = Multiplex(edges=edges, vertices=vertices)
+
+    g = m.to_networkx()
+    assert g.number_of_nodes() == 3
+    assert g.number_of_edges() == 2

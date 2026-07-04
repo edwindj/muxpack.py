@@ -86,3 +86,28 @@ def test_relationtypes_roundtrip(simple_mps):
         rt = loaded.relationtypes.to_pandas()
         assert set(rt["layer"]) == {"A", "B"}
         assert set(rt["relationtype"]) == {1, 2}
+
+
+def test_bipartite_save_read_roundtrip():
+    edges = ibis.memtable(
+        {
+            "a": [1, 2, 2],
+            "b": [10, 11, 12],
+            "relationtype": [5, 5, 6],
+        }
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        muxio.save_bipartite(
+            edges=edges,
+            role_src="a",
+            role_dst="b",
+            relationtype="relationtype",
+            dir=tmpdir,
+        )
+        bp = muxio.read_bipartite(tmpdir)
+
+        assert bp.role_src == "a"
+        assert bp.role_dst == "b"
+        assert bp.relationtype == "relationtype"
+        assert bp.edges.count().execute() == 3

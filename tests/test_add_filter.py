@@ -56,3 +56,17 @@ def test_add_filter_src_dst(simple):
     E = m.edges.to_pandas()
     assert len(E) == 2
     # assert(E[["src"]] == [1,1])
+
+
+def test_add_filter_rejects_non_dict_layers(simple):
+    m = copy(simple)
+
+    with pytest.raises(ValueError, match="layers must be a dict"):
+        m.add_filter(layers=["A"])
+
+
+def test_add_filter_rejects_unknown_layer(simple):
+    m = copy(simple)
+
+    with pytest.raises(ValueError, match="not found"):
+        m.add_filter(layers={"C": None})
