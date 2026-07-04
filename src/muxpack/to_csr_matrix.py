@@ -78,7 +78,7 @@ def idx_to_csr_matrix(
     return M
 
 
-def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
+def to_csr_matrix(edges: Table, vertices: Table) -> csr_matrix:
     """
     Transform an edge list into a sparse matrix (csr_matrix).
 
@@ -89,20 +89,16 @@ def to_csr_matrix(edges: Table, vertices: Table | None) -> csr_matrix:
 
     Returns:
         - Square CSR sparse matrix of shape ``(n_vertices, n_vertices)``.
-
-    Note:
-        - ``vertices`` is currently required and should not be ``None``.
     """
     # vertices may contain multiple periods
-    if vertices is not None:
-        vertices = vertices[["id"]].distinct()
+    vertices = vertices[["id"]].distinct()
     edges_row_col = to_row_col_idx(edges, vertices=vertices)
     M = idx_to_csr_matrix(edges_row_col, vertices=vertices)
     return M
 
 
 def to_period_csr_matrix(
-    edges: Table, vertices: Table | None, periods: list[int] | None = None
+    edges: Table, vertices: Table, periods: list[int] | None = None
 ) -> Generator[Tuple[csr_matrix, int]]:
     """
     Generate a sparse matrix for each period. The indices of the matrix correspond to
@@ -120,6 +116,7 @@ def to_period_csr_matrix(
     """
     if periods is None or len(periods) == 0:
         periods = edges[["period"]].distinct().period.to_list()
+
     for period in periods:
         E_y = edges.filter(_.period == period)
         V_y = vertices

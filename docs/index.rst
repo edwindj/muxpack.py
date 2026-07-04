@@ -6,9 +6,10 @@
 muxpack.py documentation
 ========================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+Muxpack is a Python package for working with large multi-layer or multiplex networks, 
+for multiple periods e.g years. The main classes work on an `edgelist` representation of the network, and provide methods for creating,
+manipulating, and analyzing multiplex networks. It is designed to keep the data
+on disk and only load the necessary parts into memory, making it suitable for large networks that do not fit in memory.
 
 
 .. toctree::
