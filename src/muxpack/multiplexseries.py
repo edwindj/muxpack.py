@@ -94,8 +94,10 @@ class MultiplexSeries:
         """
         layers = self.edges.select("layer").distinct().order_by("layer").layer.to_list()
         return layers
-    
-    def to_csr_matrices(self, periods: list[int] | None = None) -> Generator[Tuple[csr_matrix, int]]:
+
+    def to_csr_matrices(
+        self, periods: list[int] | None = None
+    ) -> Generator[Tuple[csr_matrix, int]]:
         """
         Generate a sparse matrix for each period. The indices of the matrix correspond to
         the rownumber the ``vertex_ids`` table.
@@ -112,8 +114,10 @@ class MultiplexSeries:
         for period in periods:
             E_y = self.edges.filter(_.period == period)
             yield to_csr_matrix(E_y, self.vertex_ids), period
-            
-    def to_networkx(self, periods: list[int] | None = None) -> Generator[Tuple[nx.MultiDiGraph, int]]:
+
+    def to_networkx(
+        self, periods: list[int] | None = None
+    ) -> Generator[Tuple[nx.MultiDiGraph, int]]:
         """
         Generate a NetworkX MultiDiGraph for each period.
 
@@ -255,6 +259,7 @@ class MultiplexSeries:
             E = E.filter(flt)
 
         self.edges = E
+
     def __str__(self) -> str:
         """
         Return a string representation of the multiplex series.

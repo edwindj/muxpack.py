@@ -39,9 +39,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
             .select("data", "row", "col", "weight")
         )
 
-        logger.debug(
-            f"Created weighted row-col index tables."
-        )
+        logger.debug(f"Created weighted row-col index tables.")
     else:
         # may sum the number of columns
         idx_edges = (
@@ -53,9 +51,7 @@ def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> T
             .select("data", "row", "col")
         )
 
-        logger.debug(
-            f"Created row-col index table with edges."
-        )
+        logger.debug(f"Created row-col index table with edges.")
     return idx_edges
 
 
@@ -116,7 +112,7 @@ def to_period_csr_matrix(
     Args:
         - edges: table with columns ``src``, ``dst``, and ``period``.
         - vertices: table with columns ``id`` to derive
-          vertices from the edges table 
+          vertices from the edges table
         - periods: list of periods to generate matrices for. If empty, all periods
           present in ``edges`` are used.
 
@@ -128,7 +124,7 @@ def to_period_csr_matrix(
     for period in periods:
         E_y = edges.filter(_.period == period)
         V_y = vertices
-        
+
         yield to_csr_matrix(E_y, V_y), period
 
 

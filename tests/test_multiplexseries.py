@@ -67,6 +67,7 @@ def test_update_relationtypes():
     assert set(rt["relationtype"]) == {1, 2}
     assert set(rt["layer"]) == {"A", "B"}
 
+
 def test_filter_period():
     edges = ibis.memtable(
         {
@@ -80,8 +81,9 @@ def test_filter_period():
     vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
     m = MultiplexSeries(edges, vertices)
     m.add_filter(periods=[2020])
-    assert(m.periods() == [2020])
-    assert(m.edges.count().execute() == 2)
+    assert m.periods() == [2020]
+    assert m.edges.count().execute() == 2
+
 
 def test_filter_periods():
     edges = ibis.memtable(
@@ -95,9 +97,10 @@ def test_filter_periods():
     )
     vertices = ibis.memtable({"id": [1, 2, 3, 4], "period": [2020, 2020, 2021, 2021]})
     m = MultiplexSeries(edges, vertices)
-    m.add_filter(periods=[2020,2021])
-    assert(m.periods() == [2020,2021])
-    assert(m.edges.count().execute() == 4)
+    m.add_filter(periods=[2020, 2021])
+    assert m.periods() == [2020, 2021]
+    assert m.edges.count().execute() == 4
+
 
 def test_filter_labels():
     edges = ibis.memtable(
@@ -114,17 +117,18 @@ def test_filter_labels():
     m = MultiplexSeries(edges, vertices)
     layers = {"A": [1]}
     m.add_filter(layers=layers)
-    assert(m.layers() == ["A"])
+    assert m.layers() == ["A"]
 
     m = MultiplexSeries(edges, vertices)
     layers = {"B": [2]}
     m.add_filter(layers=layers)
-    assert(m.layers() == ["B"])
+    assert m.layers() == ["B"]
 
     m = MultiplexSeries(edges, vertices)
     layers = {"A": None}
     m.add_filter(layers=layers)
-    assert(m.layers() == ["A"])
+    assert m.layers() == ["A"]
+
 
 def test_get_csr():
     edges = ibis.memtable(

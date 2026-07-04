@@ -1,4 +1,4 @@
-import  muxpack as mp
+import muxpack as mp
 
 ms = mp.read_multiplexseries("example/data")
 print(ms)

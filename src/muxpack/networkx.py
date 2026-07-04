@@ -4,6 +4,7 @@ import networkx as nx
 import ibis
 from .to_csr_matrix import to_csr_matrix
 
+
 def to_MultiDiGraph(edges: ibis.Table, vertices: ibis.Table) -> nx.MultiDiGraph:
     """
     Convert an edge list and vertex table to a NetworkX MultiDiGraph.
