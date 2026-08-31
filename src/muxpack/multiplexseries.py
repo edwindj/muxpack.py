@@ -216,7 +216,7 @@ class MultiplexSeries:
             - periods: list of periods to keep.
             - layers: dict of {layer:[relationtype]} to keep. Use ``None`` for the list of relationtypes to keep all relationtypes for that layer.
             - src: list of source vertex ids (ego) to keep.
-            - dst: list of destination vertex ids (non-ego) to keep.
+            - dst: list of destination vertex ids (alters) to keep.
         """
         E = self.edges
 
@@ -254,7 +254,7 @@ class MultiplexSeries:
             # we use semi join because we expect the vertex list to be large
             E = E.semi_join(vid, _.dst == vid.id)
 
-        logger.debug("Filter: f{flt}")
+        logger.debug(f"Filter: {flt}")
         if len(flt):
             E = E.filter(flt)
 
