@@ -1,12 +1,12 @@
 import ibis
 from muxpack import MultiplexSeries
 import pytest
-from collections.abc import Generator
+from collections.abc import Iterator
 from copy import copy
 
 
 @pytest.fixture()
-def simple() -> Generator[MultiplexSeries]:
+def simple() -> Iterator[MultiplexSeries]:
     edges = ibis.memtable(
         {
             "src": [1, 2, 2, 1],

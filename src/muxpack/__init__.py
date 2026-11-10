@@ -31,24 +31,25 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
-    parser.add_argument(
-        "--read-multiplex-json", metavar="PATH", help="Read a multiplex JSON file."
-    )
-    parser.add_argument(
-        "--read-multiplexseries-json", metavar="PATH", help="Read a multiplex series JSON file."
-    )
-    a = parser.parse_args(argv)
-    if a.read_multiplex_json:
-        m = read_muxpack_json(a.read_multiplex_json)
-        print(m.layers())
-        print(m.outdegree(False).to_pandas())
-        return 0
 
-    if a.read_multiplexseries_json:
-        m = read_muxpackseries_json(a.read_multiplexseries_json)
-        print(m.layers())
-        print(m.periods())
-        return 0
+    # parser.add_argument(
+    #     "--read-multiplex-json", metavar="PATH", help="Read a multiplex JSON file."
+    # )
+    # parser.add_argument(
+    #     "--read-multiplexseries-json", metavar="PATH", help="Read a multiplex series JSON file."
+    # )
+    # a = parser.parse_args(argv)
+    # if a.read_multiplex_json:
+    #     m = read_muxpack_json(a.read_multiplex_json)
+    #     print(m.layers())
+    #     print(m.outdegree(False).to_pandas())
+    #     return 0
+
+    # if a.read_multiplexseries_json:
+    #     m = read_muxpackseries_json(a.read_multiplexseries_json)
+    #     print(m.layers())
+    #     print(m.periods())
+    #     return 0
     
     parser.print_help()
     return 0

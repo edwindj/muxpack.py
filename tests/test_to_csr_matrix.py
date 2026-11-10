@@ -1,6 +1,6 @@
 import pytest
 import muxpack
-from collections.abc import Generator
+from collections.abc import Iterator
 from typing import Tuple
 import ibis
 from scipy.sparse import csr_matrix
@@ -8,7 +8,7 @@ from muxpack.to_csr_matrix import to_period_csr_matrix
 
 
 @pytest.fixture()
-def edges_vertices() -> Generator[Tuple[ibis.Table, ibis.Table]]:
+def edges_vertices() -> Iterator[Tuple[ibis.Table, ibis.Table]]:
     E = ibis.memtable(
         {
             "src": [100, 100, 200],

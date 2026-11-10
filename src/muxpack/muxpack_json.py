@@ -97,13 +97,13 @@ def read_muxpackseries_json(path: str | Path, periods: list[int] | None = None):
         if periods is not None and p not in periods:
             continue
         ppath = f"{dir / period['path'] / 'muxpack.json'}"
-        print(ppath)
+        # print(ppath)
         v, e, r = extract_muxpack_json(ppath)
         lvertices.append(v)
         ledges.extend(e)
         lrelationtypes.append(r)
 
-    print({"vertices": lvertices, "edges": ledges, "relationtype": lrelationtypes})
+    # print({"vertices": lvertices, "edges": ledges, "relationtype": lrelationtypes})
     con = ibis.duckdb.connect()
 
     logger.info("Loading vertices...{vertices}", extra={"vertices": lvertices})

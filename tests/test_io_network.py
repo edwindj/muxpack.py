@@ -1,13 +1,13 @@
 import muxpack
 import ibis
 import tempfile
-from collections.abc import Generator
+from collections.abc import Iterator
 import pytest
 from muxpack import io as muxio
 
 
 @pytest.fixture()
-def simple_mps() -> Generator[muxpack.MultiplexSeries]:
+def simple_mps() -> Iterator[muxpack.MultiplexSeries]:
     edges = ibis.memtable(
         {
             "src": [1, 2, 2, 1],

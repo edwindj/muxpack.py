@@ -3,12 +3,12 @@
 from ibis import row_number, Table, _
 import ibis
 from scipy.sparse import csr_matrix
-from typing import Tuple, Generator
+from typing import Tuple, Iterator
 
 import logging
 
 logger = logging.getLogger(__name__)
-# from collections.abc import Generator
+# from collections.abc import Iterator
 
 
 def to_row_col_idx(edges: Table, vertices: Table, use_weight: bool = False) -> Table:
@@ -99,7 +99,7 @@ def to_csr_matrix(edges: Table, vertices: Table) -> csr_matrix:
 
 def to_period_csr_matrix(
     edges: Table, vertices: Table, periods: list[int] | None = None
-) -> Generator[Tuple[csr_matrix, int]]:
+) -> Iterator[Tuple[csr_matrix, int]]:
     """
     Generate a sparse matrix for each period. The indices of the matrix correspond to
     the rownumber the ``vertices`` table.
@@ -112,7 +112,7 @@ def to_period_csr_matrix(
           present in ``edges`` are used.
 
     Returns:
-        - Generator of ``(csr_matrix, period)`` tuples, one per period.
+        - Iterator of ``(csr_matrix, period)`` tuples, one per period.
     """
     if periods is None or len(periods) == 0:
         periods = edges[["period"]].distinct().period.to_list()

@@ -134,7 +134,7 @@ class Multiplex:
         """
         from .to_csr_matrix import to_row_col_idx, idx_to_csr_matrix
 
-        # Maybe turn this into a generator instead of a dict, to avoid loading all matrices into memory at once.
+        # Maybe turn this into a Iterator instead of a dict, to avoid loading all matrices into memory at once.
 
         layers = self.layers() if layers is None else layers
         matrices = {}

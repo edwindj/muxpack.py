@@ -14,7 +14,7 @@ from pathlib import Path
 from . import io
 from .multiplex import Multiplex
 import logging
-from typing import Generator, Tuple
+from typing import Iterator, Tuple
 from scipy.sparse import csr_matrix
 import networkx as nx
 
@@ -97,7 +97,7 @@ class MultiplexSeries:
 
     def to_csr_matrices(
         self, periods: list[int] | None = None
-    ) -> Generator[Tuple[csr_matrix, int]]:
+    ) -> Iterator[Tuple[csr_matrix, int]]:
         """
         Generate a sparse matrix for each period. The indices of the matrix correspond to
         the rownumber the ``vertex_ids`` table.
@@ -117,7 +117,7 @@ class MultiplexSeries:
 
     def to_networkx(
         self, periods: list[int] | None = None
-    ) -> Generator[Tuple[nx.MultiDiGraph, int]]:
+    ) -> Iterator[Tuple[nx.MultiDiGraph, int]]:
         """
         Generate a NetworkX MultiDiGraph for each period.
 
