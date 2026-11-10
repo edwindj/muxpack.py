@@ -8,7 +8,9 @@ import ibis
 
 from muxpack.bipartite import Bipartite
 from .multiplexseries import MultiplexSeries
+from .multiplex import Multiplex
 from pathlib import Path
+import json
 import os
 import logging
 from typing import Tuple
@@ -17,7 +19,7 @@ from ibis import _
 logger = logging.getLogger(__name__)
 
 
-def read_multiplexseries(dir: Path) -> MultiplexSeries:
+def read_multiplexseries(dir: Path | list[Path]) -> MultiplexSeries:
     """
     Load a multiplex series from a directory containing Parquet files.
 
@@ -67,7 +69,6 @@ def read_multiplexseries(dir: Path) -> MultiplexSeries:
 
     m = MultiplexSeries(edges=edges, vertices=vertices, relationtypes=relationtypes)
     return m
-
 
 # def save_multiplexseries(
 #     edges: ibis.Table,
@@ -320,9 +321,9 @@ def read_bipartite(dir: Path | str) -> Bipartite:
         edges=edges, role_src=role_src, role_dst=role_dst, relationtype=relationtype
     )
 
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    m = read_multiplexseries("data")
+    read_multiplex_json("data/populationnetwork_json/multiplex.json")
+    # m = read_multiplexseries("data")
 
-    save_multiplexseries(edges=m.edges, vertices=m.vertices, dir="data2")
+    # save_multiplexseries(edges=m.edges, vertices=m.vertices, dir="data2")
